@@ -1,6 +1,6 @@
 <?php
 
-namespace Concur;
+namespace VdPoel\Concur;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Concerns\HasAttributes;

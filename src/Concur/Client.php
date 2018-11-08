@@ -1,6 +1,6 @@
 <?php
 
-namespace Concur;
+namespace VdPoel\Concur;
 
 class Client
 {

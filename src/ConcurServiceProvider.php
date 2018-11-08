@@ -1,6 +1,6 @@
 <?php
 
-namespace Concur;
+namespace VdPoel\Concur;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;

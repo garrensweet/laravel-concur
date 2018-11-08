@@ -2,9 +2,8 @@
 
 namespace VdPoel\Concur;
 
-class Client
+class ConcurClient
 {
-
     /**
      * The underlying connection to the Concur SAP APi
      *
@@ -25,10 +24,10 @@ class Client
     /**
      * Client constructor.
      *
-     * @param Credentials        $credentials
+     * @param ConcurCredentials  $credentials
      * @param \GuzzleHttp\Client $connection
      */
-    public function __construct(Credentials $credentials, \GuzzleHttp\Client $connection)
+    public function __construct(ConcurCredentials $credentials, \GuzzleHttp\Client $connection)
     {
         $this->credentials = $credentials;
         $this->connection = $connection;
@@ -36,12 +35,17 @@ class Client
 
     /**
      * @return string
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function getToken(): string
     {
         if ($this->token === null) {
-            $response = $this->connection->post('/oauth2/v0/token', [
-                'body' => $this->credentials->toArray()
+            $response = $this->connection->request('POST',config('concur.api_url_prefix').'oauth2/v0/token', [
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                    'Accept' => 'application/json'
+                ],
+                'form_params' => $this->credentials->toArray()
             ]);
 
             $this->token = (string) $response->getBody();

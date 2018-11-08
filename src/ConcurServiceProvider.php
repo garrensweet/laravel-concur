@@ -26,11 +26,26 @@ class ConcurServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->when(Client::class)
+        $this->app->singleton(ConcurCredentials::class, function (Application $app) {
+            return new ConcurCredentials([
+                'client_id' => config('concur.client_id'),
+                'client_secret' => config('concur.client_secret'),
+                'grant_type' => config('concur.grant_type'),
+                'username' => config('concur.username'),
+                'password' => config('concur.password')
+            ]);
+        });
+
+        $this->app->when(ConcurClient::class)
             ->needs('$connection')
             ->give(new \GuzzleHttp\Client([
                 'base_uri' => config('concur.api_url_prefix')
             ]));
+
+        $this->app->when(ConcurClient::class)
+            ->needs('$credentials')
+            ->give($this->app[ConcurCredentials::class]);
+
 
     }
 
@@ -41,6 +56,6 @@ class ConcurServiceProvider extends ServiceProvider
      */
     public function provides(): array
     {
-        return [Client::class];
+        return [ConcurClient::class];
     }
 }

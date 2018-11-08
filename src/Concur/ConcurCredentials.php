@@ -3,35 +3,19 @@
 namespace VdPoel\Concur;
 
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Database\Eloquent\Concerns\HasAttributes;
+use VdPoel\Concur\Traits\HasAttributes;
 
-class Credentials implements Arrayable {
+class ConcurCredentials implements Arrayable {
 
     use HasAttributes;
-    /**
-     * @var string
-     */
-    protected $client_id;
 
-    /**
-     * @var string
-     */
-    protected $client_secret;
-
-    /**
-     * @var string
-     */
-    protected $grant_type;
-
-    /**
-     * @var string
-     */
-    protected $username;
-
-    /**
-     * @var string
-     */
-    protected $password;
+    protected $fillable = [
+        'client_id',
+        'client_secret',
+        'grant_type',
+        'username',
+        'password'
+    ];
 
     /**
      * Credentials constructor.
@@ -43,7 +27,7 @@ class Credentials implements Arrayable {
         $this->fill($attributes);
     }
 
-    /**
+    /*
      * Dynamically retrieve attributes on the model.
      *
      * @param  string  $key
@@ -139,9 +123,7 @@ class Credentials implements Arrayable {
     public function fill(array $attributes): void
     {
         collect($attributes)->each(function($value, $attribute) {
-            if (property_exists($this, $attribute)) {
-                $this->{$attribute} = $value;
-            }
+            $this->setAttribute($attribute, $value);
         });
     }
 
@@ -150,7 +132,7 @@ class Credentials implements Arrayable {
      */
     public function toArray(): array
     {
-        return get_class_vars($this);
+        return $this->getAttributes();
     }
 
 }

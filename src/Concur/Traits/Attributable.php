@@ -12,8 +12,109 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Database\Eloquent\JsonEncodingException;
 
-trait HasAttributes
+trait Attributable
 {
+
+    /*
+     * Dynamically retrieve attributes on the model.
+     *
+     * @param  string  $key
+     * @return mixed
+     */
+    public function __get($key)
+    {
+        return $this->getAttribute($key);
+    }
+
+    /**
+     * Dynamically set attributes on the model.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @return void
+     */
+    public function __set($key, $value): void
+    {
+        $this->setAttribute($key, $value);
+    }
+
+    /**
+     * Determine if the given attribute exists.
+     *
+     * @param  mixed  $offset
+     * @return bool
+     */
+    public function offsetExists($offset): bool
+    {
+        return $this->getAttribute($offset) !== null;
+    }
+
+    /**
+     * Get the value for a given offset.
+     *
+     * @param  mixed  $offset
+     * @return mixed
+     */
+    public function offsetGet($offset)
+    {
+        return $this->getAttribute($offset);
+    }
+
+    /**
+     * Set the value for a given offset.
+     *
+     * @param  mixed  $offset
+     * @param  mixed  $value
+     * @return void
+     */
+    public function offsetSet($offset, $value): void
+    {
+        $this->setAttribute($offset, $value);
+    }
+
+    /**
+     * Unset the value for a given offset.
+     *
+     * @param  mixed  $offset
+     * @return void
+     */
+    public function offsetUnset($offset)
+    {
+        unset($this->attributes[$offset]);
+    }
+
+    /**
+     * Determine if an attribute or relation exists on the model.
+     *
+     * @param  string  $key
+     * @return bool
+     */
+    public function __isset($key)
+    {
+        return $this->offsetExists($key);
+    }
+
+    /**
+     * Unset an attribute on the model.
+     *
+     * @param  string  $key
+     * @return void
+     */
+    public function __unset($key)
+    {
+        $this->offsetUnset($key);
+    }
+
+    /**
+     * @param array $attributes
+     */
+    public function fill(array $attributes): void
+    {
+        collect($attributes)->each(function($value, $attribute) {
+            $this->setAttribute($attribute, $value);
+        });
+    }
+
     /**
      * The model's attributes.
      *
@@ -313,7 +414,7 @@ trait HasAttributes
             return;
         }
 
-        return $this->getRelationValue($key);
+        return;
     }
 
     /**
@@ -333,21 +434,6 @@ trait HasAttributes
             return $this->mutateAttribute($key, $value);
         }
 
-        // If the attribute exists within the cast array, we will convert it to
-        // an appropriate native PHP type dependant upon the associated value
-        // given with the key in the pair. Dayle made this comment line up.
-        if ($this->hasCast($key)) {
-            return $this->castAttribute($key, $value);
-        }
-
-        // If the attribute is listed as a date, we will convert it to a DateTime
-        // instance on retrieval, which makes it quite convenient to work with
-        // date fields without having to create a mutator for each property.
-        if (in_array($key, $this->getDates()) &&
-            ! is_null($value)) {
-            return $this->asDateTime($value);
-        }
-
         return $value;
     }
 
@@ -362,52 +448,6 @@ trait HasAttributes
         if (isset($this->attributes[$key])) {
             return $this->attributes[$key];
         }
-    }
-
-    /**
-     * Get a relationship.
-     *
-     * @param  string  $key
-     * @return mixed
-     */
-    public function getRelationValue($key)
-    {
-        // If the key already exists in the relationships array, it just means the
-        // relationship has already been loaded, so we'll just return it out of
-        // here because there is no need to query within the relations twice.
-        if ($this->relationLoaded($key)) {
-            return $this->relations[$key];
-        }
-
-        // If the "attribute" exists as a method on the model, we will just assume
-        // it is a relationship and will load and return results from the query
-        // and hydrate the relationship's value on the "relationships" array.
-        if (method_exists($this, $key)) {
-            return $this->getRelationshipFromMethod($key);
-        }
-    }
-
-    /**
-     * Get a relationship value from a method.
-     *
-     * @param  string  $method
-     * @return mixed
-     *
-     * @throws \LogicException
-     */
-    protected function getRelationshipFromMethod($method)
-    {
-        $relation = $this->$method();
-
-        if (! $relation instanceof Relation) {
-            throw new LogicException(sprintf(
-                '%s::%s must return a relationship instance.', static::class, $method
-            ));
-        }
-
-        return tap($relation->getResults(), function ($results) use ($method) {
-            $this->setRelation($method, $results);
-        });
     }
 
     /**

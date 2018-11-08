@@ -17,20 +17,19 @@ class ConcurClient
     protected $connection;
 
     /**
-     * @var string
-     */
-    protected $token;
-
-    /**
-     * Client constructor.
+     * ConcurClient constructor.
      *
      * @param ConcurCredentials  $credentials
      * @param \GuzzleHttp\Client $connection
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function __construct(ConcurCredentials $credentials, \GuzzleHttp\Client $connection)
+    public function __construct(ConcurCredentials $credentials, $connection)
     {
         $this->credentials = $credentials;
         $this->connection = $connection;
+
+        $this->getToken();
     }
 
     /**
@@ -39,20 +38,61 @@ class ConcurClient
      */
     public function getToken(): string
     {
-        if ($this->token === null) {
-            $response = $this->connection->request('POST',config('concur.api_url_prefix').'oauth2/v0/token', [
-                'headers' => [
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                    'Accept' => 'application/json'
-                ],
+        $token = session()->get('concur_api_token');
+
+        if ($token === null) {
+
+            $response = $this->connection->request('POST','oauth2/v0/token', [
                 'form_params' => $this->credentials->toArray()
             ]);
 
-            $this->token = (string) $response->getBody();
+            $token = (string) $response->getBody();
+
+            $this->setToken($token);
+
         }
 
-        return $this->token;
+        return $token;
 
+    }
+
+    /**
+     * @return ConcurClient
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Throwable
+     */
+    public function refreshToken(): self
+    {
+        $token = new ConcurTokenParser(session()->get('concur_api_token'));
+
+        if ($token->canRefresh()) {
+            $response = $this->connection->request('POST', 'oauth2/v0/token', [
+                'form_params' => [
+                    'client_id'     => $this->credentials->getAttribute('client_id'),
+                    'grant_type' => $this->credentials->getAttribute('grant_type'),
+                    'client_secret' => $this->credentials->getAttribute('client_secret'),
+                    'refresh_token' => $token->getAttribute('refresh_token'),
+                    'scope'         => $token->getAttribute('scope'),
+                ]
+            ]);
+
+            $this->setToken((string) $response->getBody());
+        }
+
+        return $this;
+
+    }
+
+    /**
+     * @param string $token
+     *
+     * @return self
+     */
+    public function setToken(string $token): self
+    {
+        session()->put('concur_api_token', $token);
+
+        return $this;
     }
 
 

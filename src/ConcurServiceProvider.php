@@ -36,16 +36,23 @@ class ConcurServiceProvider extends ServiceProvider
             ]);
         });
 
+        $this->app->singleton('ConcurGuzzleClient', function (Application $app) {
+            return new \GuzzleHttp\Client([
+                'base_uri' => config('concur.api_url_prefix'),
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                    'Accept' => 'application/json'
+                ]
+            ]);
+        });
+
         $this->app->when(ConcurClient::class)
             ->needs('$connection')
-            ->give(new \GuzzleHttp\Client([
-                'base_uri' => config('concur.api_url_prefix')
-            ]));
+            ->give($this->app['ConcurGuzzleClient']);
 
         $this->app->when(ConcurClient::class)
             ->needs('$credentials')
             ->give($this->app[ConcurCredentials::class]);
-
 
     }
 

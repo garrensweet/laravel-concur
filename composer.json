@@ -1,0 +1,38 @@
+{
+  "name": "vdpoel/concur-sdk-php",
+  "description": "A PHP SDK for interfacing with the Concur API",
+  "require": {
+    "php": "^7.1.3",
+    "ext-json": "*",
+    "laravel/framework": "~5.7.7",
+    "guzzlehttp/guzzle": "^6.3@dev"
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Garren Sweet",
+      "email": "garren@vandepoelproductions.com"
+    },
+    {
+      "name": "Brian Lee",
+      "email": "brian@vandepoelproductions.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Concur": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Concur\\ConcurServiceProvider"
+      ]
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}

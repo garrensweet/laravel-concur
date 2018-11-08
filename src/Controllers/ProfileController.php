@@ -8,4 +8,9 @@ class ProfileController extends Controller
     {
         // @todo implement method to retrieve user's concur profile
     }
+
+    public function redirect()
+    {
+
+    }
 }

@@ -18,7 +18,9 @@ class ConcurServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->publishes([__DIR__ . '/../config/concur.php' => config_path('concur.php')], 'concur-config');
+        $this->publishes([__DIR__ . '/../config/concur.php' => config_path('concur.php')], 'concur');
+
+        $this->loadRoutesFrom(__DIR__ . '/../routes/concur.php');
     }
 
     /**

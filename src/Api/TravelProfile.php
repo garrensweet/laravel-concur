@@ -13,6 +13,11 @@ class TravelProfile extends Base implements ConcurResource
     protected const API_ENDPOINT = '/api/travelprofile/v2.0/profile';
 
     /**
+     * @var string
+     */
+    protected const XSD = 'https://www.concursolutions.com/ns/TravelUserProfile.xsd';
+
+    /**
      * @throws GuzzleException
      */
     public function all()

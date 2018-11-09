@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ad9f463b2dc256bfe166e4059fcc9f97",
+    "content-hash": "68517c84d416a69303d606992e63d307",
     "packages": [
         {
             "name": "doctrine/inflector",
@@ -278,6 +278,63 @@
                 "parser"
             ],
             "time": "2018-03-08T01:11:30+00:00"
+        },
+        {
+            "name": "goetas-webservices/xsd-reader",
+            "version": "v0.3.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/goetas-webservices/xsd-reader.git",
+                "reference": "3f2f6bd04bee9aad1bc27b3e00796ec1d6e80fd3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/goetas-webservices/xsd-reader/zipball/3f2f6bd04bee9aad1bc27b3e00796ec1d6e80fd3",
+                "reference": "3f2f6bd04bee9aad1bc27b3e00796ec1d6e80fd3",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.1"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2.10",
+                "phpstan/phpstan": "^0.9.1",
+                "phpstan/phpstan-strict-rules": "^0.9.0",
+                "phpunit/phpunit": "^6.5",
+                "sebastian/phpcpd": "^3.0",
+                "vimeo/psalm": "^0.3.85"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.3-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "GoetasWebservices\\CS\\": "./php-cs-fixer/",
+                    "GoetasWebservices\\XML\\XSDReader\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Asmir Mustafic",
+                    "email": "goetas@lignano.it"
+                }
+            ],
+            "description": "Read any XML Schema (XSD) programmatically with PHP",
+            "keywords": [
+                "parser",
+                "php",
+                "xml",
+                "xmlschema",
+                "xsd"
+            ],
+            "time": "2018-06-05T16:03:58+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",

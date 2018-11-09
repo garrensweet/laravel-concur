@@ -10,14 +10,22 @@ class TravelProfile extends Model
      * @var array
      */
     protected $fillable = [
-        'LoginID',
-        'EmployeeID',
+        'NamePrefix',
         'FirstName',
-        'LastName',
         'MiddleName',
-        'PrimaryEmail',
-        'Active',
-        'CellPhoneNumber',
-        'OrganizationUnit'
+        'LastName',
+        'NameSuffix',
+        'PreferredName',
+        'JobTitle',
+        'CompanyEmployeeID',
+        'PreferredLanguage',
+        'HasOpenBooking',
+        'CountryCode',
+        'CompanyName',
+        'CompanyID',
+        'RuleClass',
+        'TravelConfigID',
+        'AgencyNumber',
+        'UUID'
     ];
 }

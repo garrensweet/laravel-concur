@@ -7,7 +7,7 @@ use GoetasWebservices\XML\XSDReader\Schema\Schema;
 use GoetasWebservices\XML\XSDReader\SchemaReader;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use Illuminate\Contracts\Session\Session;
+use Illuminate\Cache\Repository;
 use Psr\Http\Message\ResponseInterface;
 
 abstract class Base
@@ -18,9 +18,9 @@ abstract class Base
     protected const API_ENDPOINT = '/';
 
     /**
-     * @var string
+     * @var ?string
      */
-    protected const XSD = 'http://localhost';
+    protected const XSD = null;
 
     /**
      * @var Client
@@ -33,9 +33,9 @@ abstract class Base
     protected $config;
 
     /**
-     * @var Session
+     * @var Repository
      */
-    protected $session;
+    protected $cache;
 
     /**
      * @var SchemaReader
@@ -45,15 +45,15 @@ abstract class Base
     /**
      * Concur constructor.
      * @param Client $client
-     * @param Session $session
+     * @param Repository $cache
      * @param SchemaReader $reader
      */
-    public function __construct(Client $client, Session $session, SchemaReader $reader)
+    public function __construct(Client $client, Repository $cache, SchemaReader $reader)
     {
-        $this->client  = $client;
-        $this->session = $session;
-        $this->reader  = $reader;
-        $this->config  = config('services.concur');
+        $this->client = $client;
+        $this->cache  = $cache;
+        $this->reader = $reader;
+        $this->config = config('services.concur');
     }
 
     /**
@@ -74,17 +74,17 @@ abstract class Base
      */
     protected function url(array $params = []): string
     {
-        $url = $this->session->get('geolocation') . static::API_ENDPOINT;
-
-        return empty($params) ? $url : $url . http_build_query($params);
+        return with($this->session->get('geolocation') . static::API_ENDPOINT, function ($resourceUri) use ($params) {
+            return empty($params) ? $resourceUri : $resourceUri . http_build_query($params);
+        });
     }
 
     /**
-     * @return Schema
+     * @return Schema|null
      * @throws IOException
      */
-    protected function schema(): Schema
+    protected function schema()
     {
-        return $this->reader->readFile(static::XSD);
+        return !is_null(static::XSD) ? $this->reader->readFile(static::XSD) : null;
     }
 }

@@ -2,15 +2,15 @@
 
 namespace VdPoel\Concur\Api;
 
+use Carbon\Carbon;
 use GuzzleHttp\Exception\GuzzleException;
-use VdPoel\Concur\Contracts\ConcurResource;
 
 /**
  * Class User
  *
  * @package VdPoel\Concur\Api
  */
-class User extends Base implements ConcurResource
+class User extends Resource
 {
     /**
      * @var string
@@ -18,38 +18,41 @@ class User extends Base implements ConcurResource
     protected const API_ENDPOINT = '/api/user/v1.0/user';
 
     /**
-     * @throws GuzzleException
-     */
-    public function all()
-    {
-        $response = $this->request($this->url());
-
-    }
-
-    /**
      * @param array $params
      * @throws GuzzleException
      */
     public function get(array $params = [])
     {
-        $response = $this->request($this->url(['loginID' => data_get($params, 'loginID')]));
+        $response = $this->request($this->url(['LoginId' => data_get($params, 'LoginId')]));
+    }
+
+    public function update(array $params = [])
+    {
+        $response = $this->request($this->url());
+    }
+
+    public function fields()
+    {
+
     }
 
     /**
-     * @return void
+     * @param Carbon|string $deactivatedAt
+     * @throws GuzzleException
      */
-    public function create()
+    public function deactivate($deactivatedAt)
     {
-        throw new \BadMethodCallException('User creation is not supported.');
-    }
+        $deactivatedAt = is_string($deactivatedAt) ? Carbon::parse($deactivatedAt) : $deactivatedAt;
 
-    public function update()
-    {
         $response = $this->request($this->url());
     }
 
-    public function deactivate()
+    /**
+     * @param string $LoginID
+     * @throws GuzzleException
+     */
+    public function changePassword(string $LoginID)
     {
-        $response = $this->request($this->url());
+        $response = $this->request($this->url(), 'POST');
     }
 }

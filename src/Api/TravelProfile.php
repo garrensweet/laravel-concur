@@ -3,9 +3,12 @@
 namespace VdPoel\Concur\Api;
 
 use GuzzleHttp\Exception\GuzzleException;
-use VdPoel\Concur\Contracts\ConcurResource;
 
-class TravelProfile extends Base implements ConcurResource
+/**
+ * Class TravelProfile
+ * @package VdPoel\Concur\Api
+ */
+class TravelProfile extends Resource
 {
     /**
      * @var string
@@ -18,39 +21,34 @@ class TravelProfile extends Base implements ConcurResource
     protected const XSD = 'https://www.concursolutions.com/ns/TravelUserProfile.xsd';
 
     /**
-     * @throws GuzzleException
-     */
-    public function all()
-    {
-        $response = $this->request($this->url());
-
-
-    }
-
-    /**
      * @param array $params
      * @throws GuzzleException
      */
     public function get(array $params = [])
     {
         $response = $this->request($this->url([
-            'userid_type' => data_get($params, 'userid_type', 'login'),
+            'userid_type'  => data_get($params, 'userid_type', 'login'),
             'userid_value' => data_get($params, 'userid_value'),
         ]));
     }
 
-    public function create()
+    /**
+     * @param array $params
+     * @return mixed|void
+     * @throws GuzzleException
+     */
+    public function create(array $params = [])
     {
-        $response = $this->request($this->url(), 'POST');
+        $response = $this->request($this->url(), 'POST', $params);
     }
 
-    public function update()
+    /**
+     * @param array $params
+     * @return mixed|void
+     * @throws GuzzleException
+     */
+    public function update(array $params = [])
     {
-        $response = $this->request($this->url());
-    }
-
-    public function deactivate()
-    {
-        $response = $this->request($this->url());
+        $response = $this->request($this->url(), 'PUT', $params);
     }
 }

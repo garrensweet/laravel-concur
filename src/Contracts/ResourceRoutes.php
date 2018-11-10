@@ -4,7 +4,7 @@ namespace VdPoel\Concur\Contracts;
 
 use GuzzleHttp\Exception\GuzzleException;
 
-interface ConcurResource
+interface ResourceRoutes
 {
     /**
      * @return mixed
@@ -20,14 +20,14 @@ interface ConcurResource
     public function get(array $params = []);
 
     /**
+     * @param array $params
      * @return mixed
-     * @throws GuzzleException
      */
-    public function create();
+    public function create(array $params = []);
 
     /**
+     * @param array $params
      * @return mixed
-     * @throws GuzzleException
      */
-    public function update();
+    public function update(array $params = []);
 }

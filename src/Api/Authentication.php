@@ -2,6 +2,7 @@
 
 namespace VdPoel\Concur\Api;
 
+use Carbon\Carbon;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Auth\AuthenticationException;
 
@@ -16,7 +17,59 @@ class Authentication extends Base
      * @throws AuthenticationException
      * @throws GuzzleException
      */
-    public function getAccessToken(): bool
+    public function login()
+    {
+        if (!$this->check()) {
+            return $this->getAccessToken();
+        }
+
+        return true;
+    }
+
+    /**
+     * @return bool
+     * @throws AuthenticationException
+     * @throws GuzzleException
+     */
+    public function refresh()
+    {
+        return $this->refreshAccessToken();
+    }
+
+    /**
+     * @return bool
+     */
+    protected function exists(): bool
+    {
+        return !$this->cache->missing('expiry');
+    }
+
+    /**
+     * @return bool
+     */
+    protected function expired(): bool
+    {
+        if ($this->exists()) {
+            return now()->gte(Carbon::createFromTimestamp($this->cache->get('expiry')));
+        }
+
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function check(): bool
+    {
+        return $this->exists() && !$this->expired();
+    }
+
+    /**
+     * @return bool
+     * @throws AuthenticationException
+     * @throws GuzzleException
+     */
+    protected function getAccessToken(): bool
     {
         return $this->sendAuthenticationRequest($this->body());
     }
@@ -26,7 +79,7 @@ class Authentication extends Base
      * @throws AuthenticationException
      * @throws GuzzleException
      */
-    public function refreshAccessToken(): bool
+    protected function refreshAccessToken(): bool
     {
         return $this->sendAuthenticationRequest($this->body('refresh_token'));
     }
@@ -46,7 +99,11 @@ class Authentication extends Base
 
             if (is_array($contents) && json_last_error() === JSON_ERROR_NONE) {
                 foreach ($contents as $key => $value) {
-                    $this->session->put($key, $value);
+                    if ($key === 'expires_in') {
+                        $this->setTokenExpiration($value);
+                    }
+
+                    $this->cache->put($key, $value);
                 }
 
                 return true;
@@ -54,6 +111,17 @@ class Authentication extends Base
         }
 
         throw new AuthenticationException('Concur API authentication failed.');
+    }
+
+    /**
+     * @param int $seconds
+     * @return void
+     */
+    protected function setTokenExpiration(int $seconds): void
+    {
+        $epoch = now()->addSeconds($seconds);
+
+        $this->cache->put('expiry', $epoch->timestamp, $epoch);
     }
 
     /**
@@ -88,7 +156,7 @@ class Authentication extends Base
                 break;
             case 'refresh_token':
                 return array_merge($params, [
-                    'refresh_token' => $this->session->get('refresh_token')
+                    'refresh_token' => $this->cache->get('refresh_token')
                 ]);
                 break;
             default:

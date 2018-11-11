@@ -44,4 +44,12 @@ abstract class Resource extends Base implements ResourceRoutes
     {
         throw new \BadMethodCallException('Method not implemented.');
     }
+
+    /**
+     * @return string
+     */
+    protected function tokenType(): string
+    {
+        return 'Bearer';
+    }
 }

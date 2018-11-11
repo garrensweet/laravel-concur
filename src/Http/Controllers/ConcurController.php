@@ -2,45 +2,88 @@
 
 namespace VdPoel\Concur\Http\Controllers;
 
+use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use VdPoel\Concur\Api\Factory;
 
+/**
+ * Class ConcurController
+ *
+ * @package VdPoel\Concur\Http\Controllers
+ */
 class ConcurController extends Controller
 {
     /**
-     * @param Request $request
-     * @return RedirectResponse
+     * @var Factory
      */
-    public function authenticate(Request $request): RedirectResponse
-    {
-        if (auth('concur')->attempt(['LoginID' => $request->user()->getAttribute('email')])) {
-            return redirect()->route('concur.signin');
-        }
+    protected $concur;
 
-        return redirect()->route('concur.register');
+    /**
+     * ConcurController constructor.
+     */
+    public function __construct()
+    {
+        $this->concur = app()->make('concur.api.factory');
+
+        $this->middleware(function (Request $request, \Closure $next) {
+            abort_unless(auth()->check(), 401, 'Unauthorized.');
+
+            return $next($request);
+        });
     }
 
     /**
-     * @param Request $request
-     * @return RedirectResponse
+     * @return JsonResponse|RedirectResponse
+     * @throws GuzzleException
      */
-    public function register(Request $request): RedirectResponse
+    public function lookupTravelProfile()
     {
-        $credentials = $request->user()->only(['email', 'first_name', 'last_name']);
-
-        if (auth('concur')->register($credentials)) {
-            return redirect()->route('concur.signin');
+        if ($this->concur->travelProfile->get(['userid_value' => request()->user()->getAttribute('email')])) {
+            return $this->respond(route('concur.signin'));
         }
 
-        return back()->withErrors(['email' => 'Concur authentication failed.']);
+        return $this->respond(route('concur.travel.profile.create'));
     }
 
     /**
-     * @return RedirectResponse
+     * @return JsonResponse|RedirectResponse
+     * @throws GuzzleException
      */
-    public function signin(): RedirectResponse
+    public function createTravelProfile()
     {
-        return redirect()->to(config('concur.api.urls.signin'));
+        abort_unless($this->concur->travelProfile->create($this->mapFormParams('travel.profile')), 400, 'Unable to create travel profile.');
+
+        return $this->respond(route('concur.signin'));
+    }
+
+    /**
+     * @return JsonResponse|RedirectResponse
+     */
+    public function signin()
+    {
+        return $this->respond(config('concur.api.urls.signin'));
+    }
+
+    /**
+     * @param string $type
+     * @return array
+     */
+    protected function mapFormParams(string $type): array
+    {
+        return with(config(sprintf('concur.form_params.%s', $type)), function (array $map) {
+            return array_combine(array_keys($map), array_values(request()->user()->only(array_values($map))));
+        });
+    }
+
+    /**
+     * @param string $url
+     * @return JsonResponse|RedirectResponse
+     */
+    protected function respond(string $url)
+    {
+        return request()->ajax() ? response()->json(['redirect' => $url], 302) : redirect()->to($url);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace VdPoel\Concur\Api;
 
-use Carbon\Carbon;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
@@ -19,40 +19,27 @@ class User extends Resource
 
     /**
      * @param array $params
-     * @throws GuzzleException
+     * @return mixed|string
      */
     public function get(array $params = [])
     {
-        $response = $this->request($this->url(['LoginId' => data_get($params, 'LoginId')]));
-    }
+        try {
+            $response = $this->request($this->url(['loginID' => data_get($params, 'email')]));
 
-    public function update(array $params = [])
-    {
-        $response = $this->request($this->url());
-    }
+            $contents = $this->parseResponse($response);
 
-    public function fields()
-    {
+            return $contents;
+        } catch (ClientException $exception) {
+            $response = $exception->getResponse();
+            $contents = $response->getBody()->getContents();
 
-    }
+            $parsed = simplexml_load_string($contents);
 
-    /**
-     * @param Carbon|string $deactivatedAt
-     * @throws GuzzleException
-     */
-    public function deactivate($deactivatedAt)
-    {
-        $deactivatedAt = is_string($deactivatedAt) ? Carbon::parse($deactivatedAt) : $deactivatedAt;
+            dd($parsed);
+        } catch (GuzzleException $exception) {
+            dd($exception->getMessage());
+        }
 
-        $response = $this->request($this->url());
-    }
-
-    /**
-     * @param string $LoginID
-     * @throws GuzzleException
-     */
-    public function changePassword(string $LoginID)
-    {
-        $response = $this->request($this->url(), 'POST');
+        return null;
     }
 }

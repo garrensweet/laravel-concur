@@ -16,7 +16,7 @@ class Factory
      */
     public function authentication(): Authentication
     {
-        return app('concur.api.authentication');
+        return app()->make('concur.api.authentication');
     }
 
     /**
@@ -24,7 +24,7 @@ class Factory
      */
     public function travelProfile(): TravelProfile
     {
-        return app('concur.api.travel.profile');
+        return app()->make('concur.api.travel.profile');
     }
 
     /**
@@ -32,7 +32,7 @@ class Factory
      */
     public function user(): User
     {
-        return app('concur.api.user');
+        return app()->make('concur.api.user');
     }
 
     /**

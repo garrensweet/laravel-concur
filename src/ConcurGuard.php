@@ -2,6 +2,7 @@
 
 namespace VdPoel\Concur;
 
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Auth\GuardHelpers;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -62,47 +63,11 @@ class ConcurGuard implements Guard
     }
 
     /**
-     * @param Request $request
-     * @return ConcurGuard
-     */
-    public function setRequest(Request $request): ConcurGuard
-    {
-        $this->request = $request;
-
-        return $this;
-    }
-
-    /**
-     * Get the user provider used by the guard.
-     *
-     * @return UserProvider
-     */
-    public function getProvider(): UserProvider
-    {
-        return $this->provider;
-    }
-
-    /**
-     * Set the user provider used by the guard.
-     *
-     * @param  UserProvider $provider
-     *
-     * @return $this
-     */
-    public function setProvider(UserProvider $provider)
-    {
-        $this->provider = $provider;
-
-        return $this;
-    }
-
-    /**
      * Validate a user's credentials.
      *
      * @param  array $credentials
      *
      * @return bool
-     * @throws GuzzleException
      */
     public function validate(array $credentials = [])
     {
@@ -113,22 +78,15 @@ class ConcurGuard implements Guard
      * Attempt to authenticate the user using the given credentials.
      *
      * @param  array $credentials
-     * @param  bool $login
      *
      * @return bool|string
-     * @throws GuzzleException
      */
-    public function attempt(array $credentials = [], $login = true)
+    public function attempt(array $credentials = [])
     {
-        switch (true) {
-            case array_has($credentials, 'LoginID');
-                return $this->concur->user->get($credentials);
-                break;
-            case array_has($credentials, 'email');
-                return $this->concur->user->get(['LoginID' => array_get($credentials, 'email')]);
-                break;
-            default:
-                throw new \InvalidArgumentException(sprintf('Missing LoginID or email address.'));
+        try {
+            return $this->concur->user->get($credentials);
+        } catch (ClientException $exception) {
+            return false;
         }
     }
 
@@ -141,6 +99,19 @@ class ConcurGuard implements Guard
      * @throws GuzzleException
      */
     public function register(array $credentials = [])
+    {
+        return $this->concur->travelProfile()->create($credentials);
+    }
+
+    /**
+     * Attempt to register a new user account.
+     *
+     * @param  array $credentials
+     *
+     * @return bool|string
+     * @throws GuzzleException
+     */
+    public function profile(array $credentials = [])
     {
         return $this->concur->travelProfile->create($credentials);
     }

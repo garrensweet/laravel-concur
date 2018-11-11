@@ -2,7 +2,6 @@
 
 namespace VdPoel\Concur\Api;
 
-use Carbon\Carbon;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Auth\AuthenticationException;
 
@@ -19,8 +18,12 @@ class Authentication extends Base
      */
     public function login()
     {
-        if (!$this->check()) {
-            return $this->getAccessToken();
+        if (!$this->exists('access_token')) {
+            return $this->requestAccessToken();
+        }
+
+        if ($this->exists('access_token') && $this->expired()) {
+            return $this->refreshAccessToken();
         }
 
         return true;
@@ -31,57 +34,17 @@ class Authentication extends Base
      * @throws AuthenticationException
      * @throws GuzzleException
      */
-    public function refresh()
+    protected function requestAccessToken(): bool
     {
-        return $this->refreshAccessToken();
-    }
-
-    /**
-     * @return bool
-     */
-    protected function exists(): bool
-    {
-        return !$this->cache->missing('expiry');
-    }
-
-    /**
-     * @return bool
-     */
-    protected function expired(): bool
-    {
-        if ($this->exists()) {
-            return now()->gte(Carbon::createFromTimestamp($this->cache->get('expiry')));
-        }
-
-        return true;
-    }
-
-    /**
-     * @return bool
-     */
-    protected function check(): bool
-    {
-        return $this->exists() && !$this->expired();
-    }
-
-    /**
-     * @return bool
-     * @throws AuthenticationException
-     * @throws GuzzleException
-     */
-    protected function getAccessToken(): bool
-    {
-        return $this->sendAuthenticationRequest($this->body());
-    }
-
-    /**
-     * @return bool
-     * @throws AuthenticationException
-     * @throws GuzzleException
-     */
-    protected function refreshAccessToken(): bool
-    {
-        return $this->sendAuthenticationRequest($this->body('refresh_token'));
+        return $this->sendAuthenticationRequest([
+            'client_id'     => data_get($this->config, 'api.params.client_id'),
+            'client_secret' => data_get($this->config, 'api.params.client_secret'),
+            'scope'         => data_get($this->config, 'api.params.scope'),
+            'username'      => data_get($this->config, 'api.params.username'),
+            'password'      => data_get($this->config, 'api.params.password'),
+            'grant_type'    => 'password',
+            'credtype'      => 'password'
+        ]);
     }
 
     /**
@@ -92,36 +55,20 @@ class Authentication extends Base
      */
     protected function sendAuthenticationRequest(array $body)
     {
-        $response = $this->request($this->authorizationUrl(), 'POST', ['form_params' => $body]);
+        $response = $this->request($this->authorizationUrl(), 'POST', [
+            'form_params' => $body,
+            'headers'     => [
+                'Content-Type' => 'application/x-www-form-urlencoded'
+            ]
+        ]);
 
         if ($response->getStatusCode() === 200) {
-            $contents = json_decode($response->getBody(), true);
+            $this->setCacheData($this->parseResponse($response));
 
-            if (is_array($contents) && json_last_error() === JSON_ERROR_NONE) {
-                foreach ($contents as $key => $value) {
-                    if ($key === 'expires_in') {
-                        $this->setTokenExpiration($value);
-                    }
-
-                    $this->cache->put($key, $value);
-                }
-
-                return true;
-            }
+            return true;
         }
 
         throw new AuthenticationException('Concur API authentication failed.');
-    }
-
-    /**
-     * @param int $seconds
-     * @return void
-     */
-    protected function setTokenExpiration(int $seconds): void
-    {
-        $epoch = now()->addSeconds($seconds);
-
-        $this->cache->put('expiry', $epoch->timestamp, $epoch);
     }
 
     /**
@@ -129,38 +76,30 @@ class Authentication extends Base
      */
     protected function authorizationUrl(): ?string
     {
-        return data_get($this->config, 'authorization_url');
+        return data_get($this->config, 'api.urls.authorization');
     }
 
     /**
-     * @param string $type
-     * @return array
-     * @throws \InvalidArgumentException
+     * @return bool
+     * @throws AuthenticationException
+     * @throws GuzzleException
      */
-    protected function body(string $type = 'password'): array
+    protected function refreshAccessToken(): bool
     {
-        $params = [
-            'client_id'     => data_get($this->config, 'client_id'),
-            'client_secret' => data_get($this->config, 'client_secret'),
-            'scope'         => data_get($this->config, 'scope'),
-            'grant_type'    => $type
-        ];
+        return $this->sendAuthenticationRequest([
+            'client_id'     => data_get($this->config, 'api.params.client_id'),
+            'client_secret' => data_get($this->config, 'api.params.client_secret'),
+            'scope'         => data_get($this->config, 'api.params.scope'),
+            'refresh_token' => $this->cache->get('refresh_token'),
+            'grant_type'    => 'refresh_token'
+        ]);
+    }
 
-        switch ($type) {
-            case 'password':
-                return array_merge($params, [
-                    'username' => data_get($this->config, 'username'),
-                    'password' => data_get($this->config, 'password'),
-                    'credtype' => $type
-                ]);
-                break;
-            case 'refresh_token':
-                return array_merge($params, [
-                    'refresh_token' => $this->cache->get('refresh_token')
-                ]);
-                break;
-            default:
-                throw new \InvalidArgumentException(sprintf('Unsupported grant type: %s', $type), 400);
-        }
+    /**
+     * @return string
+     */
+    protected function tokenType(): string
+    {
+        return 'OAuth';
     }
 }

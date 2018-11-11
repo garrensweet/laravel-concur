@@ -5,42 +5,41 @@ namespace VdPoel\Concur\Http\Middleware;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
-use VdPoel\Concur\Api\Authentication;
+use VdPoel\Concur\Api\Factory;
 
 /**
- * Class BaseMiddleware
+ * Class Concur
+ *
  * @package VdPoel\Concur\Http\Middleware
  */
 class Concur
 {
     /**
-     * @var Authentication
+     * @var Factory
      */
-    protected $auth;
+    protected $concur;
 
     /**
      * Create a new BaseMiddleware instance.
      *
-     * @param Authentication $auth
+     * @param Factory $concur
      */
-    public function __construct(Authentication $auth)
+    public function __construct(Factory $concur)
     {
-        $this->auth = $auth;
+        $this->concur = $concur;
     }
 
     /**
      * @param Request $request
      * @param \Closure $next
      * @return mixed
-     * @throws GuzzleException
      * @throws AuthenticationException
+     * @throws GuzzleException
      */
     public function handle(Request $request, \Closure $next)
     {
-        if ($this->auth->login()) {
-            return $next($request);
-        }
+        abort_unless($this->concur->authentication->login(), 401, 'Unauthorized.');
 
-        abort(401, 'Unauthorized.');
+        return $next($request);
     }
 }

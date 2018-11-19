@@ -27,9 +27,10 @@ return [
         ],
         'travel' => [
             'profile' => [
-                'FirstName'      => 'first_name',
-                'LastName'       => 'last_name',
-                'LoginID'        => 'email'
+                'CostCenter' => 'cost_center',
+                'FirstName'  => 'first_name',
+                'LastName'   => 'last_name',
+                'LoginID'    => 'email'
             ]
         ]
     ]

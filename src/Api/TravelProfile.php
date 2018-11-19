@@ -35,21 +35,34 @@ class TravelProfile extends Resource
 
     /**
      * @param array $params
-     * @return mixed
+     * @return ResponseInterface
      * @throws GuzzleException
      */
     public function create(array $params = [])
     {
-        $params['TravelConfigID'] = config('concur.company.travel_config_id');
-        $params['Password']       = bcrypt(openssl_random_pseudo_bytes(32));
+        if (!array_key_exists('CostCenter', $params)) {
+            $params['CostCenter'] = null;
+        }
+
+        if (!array_key_exists('Password', $params)) {
+            $params['Password'] = bcrypt(openssl_random_pseudo_bytes(32));
+        }
+
+        if (!array_key_exists('TravelConfigID', $params)) {
+            $params['TravelConfigID'] = config('concur.company.travel_config_id');
+        }
 
 $xml = <<<XML
 <ProfileResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Action="Create" LoginId="{$params['LoginID']}">
     <General>
+        <CostCenter>{$params['CostCenter']}</CostCenter>
         <FirstName>{$params['FirstName']}</FirstName>
         <LastName>{$params['LastName']}</LastName>
         <TravelConfigID>{$params['TravelConfigID']}</TravelConfigID>
     </General>
+    <EmailAddresses>
+        <EmailAddress Contact="true" Type="Business">{$params['LoginID']}</EmailAddress>
+    </EmailAddresses>
     <Password>{$params['Password']}</Password>
 </ProfileResponse>
 XML;

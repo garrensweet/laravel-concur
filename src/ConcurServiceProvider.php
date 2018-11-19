@@ -4,11 +4,13 @@ namespace VdPoel\Concur;
 
 use GuzzleHttp\Client;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use VdPoel\Concur\Api\Authentication;
 use VdPoel\Concur\Api\Factory;
 use VdPoel\Concur\Api\TravelProfile;
 use VdPoel\Concur\Api\User;
+use VdPoel\Concur\Events\Subscribers\TravelProfileEventSubscriber;
 
 /**
  * Class ConcurServiceProvider
@@ -24,6 +26,12 @@ class ConcurServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->publishes([__DIR__ . '/../config/concur.php' => config_path('concur.php')], 'concur');
+
+        Event::subscribe(TravelProfileEventSubscriber::class);
+
+//        Event::listen('concur.travel.profile.*', function ($foo, $bar) {
+//
+//        });
 
 //        Auth::extend('concur', function (Application $app, string $name, array $config) {
 //            return new ConcurGuard($app['concur.api.factory'], $app['auth']->createUserProvider($config['provider']), $app['request']);

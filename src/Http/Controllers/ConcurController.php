@@ -5,7 +5,6 @@ namespace VdPoel\Concur\Http\Controllers;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use VdPoel\Concur\Api\Factory;
 
@@ -27,12 +26,6 @@ class ConcurController extends Controller
     public function __construct()
     {
         $this->concur = app()->make('concur.api.factory');
-
-        $this->middleware(function (Request $request, \Closure $next) {
-            abort_unless(auth()->check(), 401, 'Unauthorized.');
-
-            return $next($request);
-        });
     }
 
     /**
@@ -73,8 +66,17 @@ class ConcurController extends Controller
      */
     protected function mapFormParams(string $type): array
     {
-        return with(config(sprintf('concur.form_params.%s', $type)), function (array $map) {
-            return array_combine(array_keys($map), array_values(request()->user()->only(array_values($map))));
+        return $this->combineKeysAndValues(config(sprintf('concur.form_params.%s', $type)));
+    }
+
+    /**
+     * @param array $map
+     * @return array
+     */
+    protected function combineKeysAndValues(array $map): array
+    {
+        return with(array_values(optional(request()->user())->only(array_values($map)) ?? []), function (array $values) use ($map) {
+            return array_combine(blank($values) ? [] : array_keys($map), $values);
         });
     }
 

@@ -123,6 +123,7 @@ abstract class Base
     protected function setCacheData(array $items = []): void
     {
         foreach ($items as $key => $value) {
+            dump($key);
             if ($key === 'expires_in') {
                 $this->setTokenExpiration($value);
             }

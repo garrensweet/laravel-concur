@@ -10,7 +10,7 @@ use VdPoel\Concur\Events\TravelProfile\CreateTravelProfile;
 use VdPoel\Concur\Events\TravelProfile\LookupTravelProfile;
 use VdPoel\Concur\Test\Models\Account;
 
-class TravelProfileEventSubscriber
+class AuthenticationEventSubscriber
 {
     /**
      * @var Factory
@@ -30,35 +30,17 @@ class TravelProfileEventSubscriber
     /**
      * @param CreateTravelProfile $event
      */
-    public function create (CreateTravelProfile $event)
+    public function login (CreateTravelProfile $event): void
     {
-        try {
-            $attributes = $event->model->only(array_values(config('concur.form_params.travel.profile')));
 
-            $params = array_combine(array_keys(config('concur.form_params.travel.profile')), $attributes);
-
-            $this->concur->travelProfile->create($params);
-        } catch (ClientException $exception) {
-            logger($exception->getMessage());
-        } catch (GuzzleException $exception) {
-            logger($exception->getMessage());
-        }
     }
 
     /**
      * @param Account $account
      */
-    public function lookup (Account $account)
+    public function refresh (Account $account)
     {
-        try {
-            $this->concur->travelProfile->get(['userid_value' => $account->getAttribute('email')]);
-        } catch (ClientException $exception) {
-            dump($account->getAttribute('email'));
-            dd($exception->getMessage());
-        } catch (GuzzleException $exception) {
-            dump($account->getAttribute('email'));
-            dd($exception->getMessage());
-        }
+
     }
 
     /**

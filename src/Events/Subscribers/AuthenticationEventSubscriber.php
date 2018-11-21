@@ -6,6 +6,8 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Events\Dispatcher;
 use VdPoel\Concur\Api\Factory;
+use VdPoel\Concur\Events\Authentication\RequestAccessToken;
+use VdPoel\Concur\Events\Authentication\RequestTokenRefresh;
 use VdPoel\Concur\Events\TravelProfile\CreateTravelProfile;
 use VdPoel\Concur\Events\TravelProfile\LookupTravelProfile;
 use VdPoel\Concur\Test\Models\Account;
@@ -50,7 +52,7 @@ class AuthenticationEventSubscriber
      */
     public function subscribe($events)
     {
-        $events->listen(CreateTravelProfile::class, 'VdPoel\Concur\Events\Subscribers\TravelProfileEventSubscriber@create');
-        $events->listen(LookupTravelProfile::class, 'VdPoel\Concur\Events\Subscribers\TravelProfileEventSubscriber@lookup');
+        $events->listen(RequestAccessToken::class, 'VdPoel\Concur\Events\Subscribers\TravelProfileEventSubscriber@create');
+        $events->listen(RequestTokenRefresh::class, 'VdPoel\Concur\Events\Subscribers\TravelProfileEventSubscriber@lookup');
     }
 }

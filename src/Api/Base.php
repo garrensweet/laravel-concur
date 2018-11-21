@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Cache\CacheManager;
+use Illuminate\Cache\RedisStore;
 use Illuminate\Contracts\Cache\Store;
 use Psr\Http\Message\ResponseInterface;
 
@@ -45,6 +46,18 @@ abstract class Base
         $this->client = $client;
         $this->cache  = $cache->getStore();
         $this->config = config('concur');
+
+        if (method_exists($this->cache, 'setPrefix')) {
+            $this->cache->setPrefix(implode('.', ['Concur', $this->getCachePrefix()]));
+        }
+    }
+
+    /**
+     * @return string
+     */
+    protected function getCachePrefix(): string
+    {
+        return class_basename(static::class);
     }
 
     /**
@@ -123,7 +136,6 @@ abstract class Base
     protected function setCacheData(array $items = []): void
     {
         foreach ($items as $key => $value) {
-            dump($key);
             if ($key === 'expires_in') {
                 $this->setTokenExpiration($value);
             }

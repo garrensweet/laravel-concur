@@ -54,10 +54,10 @@ class TravelProfileEventSubscriber
             $this->concur->travelProfile->get(['userid_value' => $account->getAttribute('email')]);
         } catch (ClientException $exception) {
             dump($account->getAttribute('email'));
-            dd($exception->getMessage());
+            dump($exception->getMessage());
         } catch (GuzzleException $exception) {
             dump($account->getAttribute('email'));
-            dd($exception->getMessage());
+            dump($exception->getMessage());
         }
     }
 

@@ -10,6 +10,7 @@ use VdPoel\Concur\Api\Authentication;
 use VdPoel\Concur\Api\Factory;
 use VdPoel\Concur\Api\TravelProfile;
 use VdPoel\Concur\Api\User;
+use VdPoel\Concur\Events\Subscribers\AuthenticationEventSubscriber;
 use VdPoel\Concur\Events\Subscribers\TravelProfileEventSubscriber;
 
 /**
@@ -28,14 +29,7 @@ class ConcurServiceProvider extends ServiceProvider
         $this->publishes([__DIR__ . '/../config/concur.php' => config_path('concur.php')], 'concur');
 
         Event::subscribe(TravelProfileEventSubscriber::class);
-
-//        Event::listen('concur.travel.profile.*', function ($foo, $bar) {
-//
-//        });
-
-//        Auth::extend('concur', function (Application $app, string $name, array $config) {
-//            return new ConcurGuard($app['concur.api.factory'], $app['auth']->createUserProvider($config['provider']), $app['request']);
-//        });
+        Event::subscribe(AuthenticationEventSubscriber::class);
     }
 
     /**
@@ -49,8 +43,6 @@ class ConcurServiceProvider extends ServiceProvider
         $this->registerConcurApiFactory();
         $this->registerGuzzleClient();
         $this->registerApiRequestHandlers();
-
-        $this->loadRoutesFrom(__DIR__ . DIRECTORY_SEPARATOR . 'routes.php');
     }
 
     /**
@@ -58,8 +50,7 @@ class ConcurServiceProvider extends ServiceProvider
      */
     protected function registerAliases(): void
     {
-        $this->app->alias('concur.auth.guard', ConcurGuard::class);
-        $this->app->alias('concur.api.factory', Factory::class);
+        $this->app->alias('concur', Factory::class);
         $this->app->alias('concur.api.authentication', Authentication::class);
         $this->app->alias('concur.api.travel.profile', TravelProfile::class);
         $this->app->alias('concur.api.user', User::class);
@@ -70,7 +61,7 @@ class ConcurServiceProvider extends ServiceProvider
      */
     protected function registerConcurApiFactory(): void
     {
-        $this->app->singleton('concur.api.factory', function () {
+        $this->app->singleton('concur', function () {
             return new Factory();
         });
     }

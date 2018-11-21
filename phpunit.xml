@@ -10,8 +10,11 @@
          processIsolation="false"
          stopOnFailure="false">
     <testsuites>
-        <testsuite name="van de Poel Test Suite">
-            <directory>tests</directory>
+        <testsuite name="Authentication">
+            <file>tests/AuthenticationTest.php</file>
+        </testsuite>
+        <testsuite name="Travel Profiles">
+            <file>tests/TravelProfileTest.php</file>
         </testsuite>
     </testsuites>
     <filter>

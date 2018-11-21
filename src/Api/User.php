@@ -2,8 +2,12 @@
 
 namespace VdPoel\Concur\Api;
 
+use function array_chunk;
+use function count;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
+use VdPoel\Concur\Contracts\MakesTravelRequests;
+use VdPoel\Concur\Models\User;
 
 /**
  * Class User
@@ -42,4 +46,35 @@ class User extends Resource
 
         return null;
     }
+
+    public function deactivate(array $users)
+    {
+        try {
+            if (count($users) > static::BATCH_MAX_ITEMS) {
+                array_chunk($users, static::BATCH_MAX_ITEMS);
+            }
+            $requestor->
+            $response = $this->request($this->url(), 'POST');
+
+            $contents = $this->parseResponse($response);
+
+            return $contents;
+        } catch (ClientException $exception) {
+            $response = $exception->getResponse();
+            $contents = $response->getBody()->getContents();
+
+            $parsed = simplexml_load_string($contents);
+
+            dd($parsed);
+        } catch (GuzzleException $exception) {
+            dd($exception->getMessage());
+        }
+    }
+
+    public function reactivate(User $user)
+    {
+
+    }
+
+    protected function createXML(array $items): string
 }

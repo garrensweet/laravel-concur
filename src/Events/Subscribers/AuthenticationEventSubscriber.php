@@ -29,6 +29,7 @@ class AuthenticationEventSubscriber
 
     /**
      * @param CreateTravelProfile $event
+     * @return void
      */
     public function login (CreateTravelProfile $event): void
     {
@@ -37,8 +38,9 @@ class AuthenticationEventSubscriber
 
     /**
      * @param Account $account
+     * @return void
      */
-    public function refresh (Account $account)
+    public function refresh (Account $account): void
     {
 
     }
@@ -47,8 +49,9 @@ class AuthenticationEventSubscriber
      * Register the listeners for the subscriber.
      *
      * @param  Dispatcher  $events
+     * @return void
      */
-    public function subscribe($events)
+    public function subscribe($events): void
     {
         $events->listen(CreateTravelProfile::class, 'VdPoel\Concur\Events\Subscribers\TravelProfileEventSubscriber@create');
         $events->listen(LookupTravelProfile::class, 'VdPoel\Concur\Events\Subscribers\TravelProfileEventSubscriber@lookup');

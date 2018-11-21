@@ -21,6 +21,11 @@ abstract class Base
     protected const API_ENDPOINT = '/';
 
     /**
+     * @var int
+     */
+    protected const BATCH_MAX_ITEMS = 500;
+
+    /**
      * @var Client
      */
     protected $client;

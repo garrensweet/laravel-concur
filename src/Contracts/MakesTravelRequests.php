@@ -28,4 +28,9 @@ interface MakesTravelRequests
      * @return string
      */
     public function loginID(): string;
+
+    /**
+     * @return bool
+     */
+    public function active(): bool;
 }

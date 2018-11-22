@@ -20,13 +20,39 @@ use VdPoel\Concur\Events\Subscribers\TravelProfileEventSubscriber;
 class ConcurServiceProvider extends ServiceProvider
 {
     /**
+     * @var string
+     */
+    protected $packageConfig;
+
+    /**
+     * ConcurServiceProvider constructor.
+     *
+     * @param $app
+     */
+    public function __construct($app)
+    {
+        parent::__construct($app);
+
+        $this->defer         = true;
+        $this->packageConfig = __DIR__ . '/../config/concur.php';
+    }
+
+    /**
      * Bootstrap our package services.
      *
      * @return void
      */
     public function boot(): void
     {
-        $this->publishes([__DIR__ . '/../config/concur.php' => config_path('concur.php')], 'concur');
+        $this->publishes([$this->packageConfig => config_path('concur.php')], 'concur');
+
+        $this->mergeConfigFrom($this->packageConfig, 'concur');
+
+        if (!class_exists('CreateConcurTravelProfilesTable')) {
+            $this->publishes([
+                __DIR__.'/../migrations/create_concur_travel_profiles_table.php.stub' => database_path("/migrations/{$timestamp}_create_activity_log_table.php"),
+            ], 'migrations');
+        }
 
         Event::subscribe(TravelProfileEventSubscriber::class);
         Event::subscribe(AuthenticationEventSubscriber::class);
@@ -43,6 +69,21 @@ class ConcurServiceProvider extends ServiceProvider
         $this->registerConcurApiFactory();
         $this->registerGuzzleClient();
         $this->registerApiRequestHandlers();
+    }
+
+    /**
+     * @return array
+     */
+    public function provides(): array
+    {
+        return [
+            Authentication::class,
+            AuthenticationEventSubscriber::class,
+            Factory::class,
+            TravelProfile::class,
+            TravelProfileEventSubscriber::class,
+            User::class
+        ];
     }
 
     /**

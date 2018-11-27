@@ -2,7 +2,6 @@
 
 namespace VdPoel\Concur\Api;
 
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\ResponseInterface;
 use VdPoel\Concur\Events\TravelProfile\TravelProfileFound;
@@ -14,16 +13,18 @@ use VdPoel\Concur\Events\TravelProfile\TravelProfileFound;
 class TravelProfile extends Resource
 {
     /**
-     * @var string
+     * @return string
      */
-    protected const API_ENDPOINT = '/api/travelprofile/v2.0/profile';
+    protected function getApiPath(): string
+    {
+        return '/api/travelprofile/v2.0/profile';
+    }
 
     /**
      * @param array $params
-     * @return ResponseInterface|null
      * @throws GuzzleException
      */
-    public function get(array $params = [])
+    public function get(array $params = []): void
     {
         try {
             $response = $this->request($this->url(array_merge($params, [
@@ -33,11 +34,9 @@ class TravelProfile extends Resource
             $parsed = $this->parseResponse($response);
 
             event(TravelProfileFound::class, $parsed);
-        } catch (ClientException $exception) {
+        } catch (GuzzleException $exception) {
             $this->errorHandler->handle($exception);
         }
-
-        return null;
     }
 
     /**
@@ -45,35 +44,33 @@ class TravelProfile extends Resource
      * @return ResponseInterface
      * @throws GuzzleException
      */
-    public function create(array $params = [])
+    public function create(array $params = []): ResponseInterface
     {
-        if (!array_key_exists('CostCenter', $params)) {
-            $params['CostCenter'] = null;
+        if (str_contains($loginId = data_get($params, 'LoginID'), '+')) {
+            data_set($params, 'LoginID', implode('@', [str_before($loginId, '+'), str_after($loginId, '@')]));
         }
 
         if (!array_key_exists('Password', $params)) {
-            $params['Password'] = bcrypt(openssl_random_pseudo_bytes(32));
+            data_set($params, 'Password', bcrypt(str_random(32)));
         }
 
         if (!array_key_exists('TravelConfigID', $params)) {
-            $params['TravelConfigID'] = config('concur.company.travel_config_id');
+            data_set($params, 'TravelConfigID', config('concur.company.travel_config_id'));
         }
 
-$xml = <<<XML
-<ProfileResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Action="Create" LoginId="{$params['LoginID']}">
-    <General>
-        <CostCenter>{$params['CostCenter']}</CostCenter>
-        <FirstName>{$params['FirstName']}</FirstName>
-        <LastName>{$params['LastName']}</LastName>
-        <TravelConfigID>{$params['TravelConfigID']}</TravelConfigID>
-    </General>
-    <EmailAddresses>
-        <EmailAddress Contact="true" Type="Business">{$params['LoginID']}</EmailAddress>
-    </EmailAddresses>
-    <Password>{$params['Password']}</Password>
-</ProfileResponse>
-XML;
+        $body = sprintf('<ProfileResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Action="Create" LoginId="%s">', data_get($params, 'LoginID'));
+        $body .= '<General>';
+        $this->addField($body, 'CostCenter', $params);
+        $this->addField($body, 'FirstName', $params);
+        $this->addField($body, 'LastName', $params);
+        $this->addField($body, 'TravelConfigID', $params);
+        $body .= '</General>';
+        $body .= '<EmailAddresses>';
+        $body .= sprintf('<EmailAddress Contact="true" Type="Business">%s</EmailAddress>', data_get($params, 'LoginID'));
+        $body .= '</EmailAddresses>';
+        $this->addField($body, 'Password', $params);
+        $body .= '</ProfileResponse>';
 
-        return $this->request($this->url(), 'POST', ['body' => $xml]);
+        return $this->request($this->url(), 'POST', compact('body'));
     }
 }

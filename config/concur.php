@@ -10,6 +10,7 @@ return [
             'scope'         => env('CONCUR_SCOPE'),
         ],
         'urls'   => [
+            'geolocation'   => env('CONCUR_GEOLOCATION_BASE_URL', 'https://us.api.concursolutions.com/'),
             'api_prefix'    => env('CONCUR_API_URL_PREFIX'),
             'authorization' => env('CONCUR_AUTHORIZATION_URL'),
             'signin'        => env('CONCUR_SIGNIN_URL'),

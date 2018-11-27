@@ -55,7 +55,7 @@ class Authentication extends Base
      */
     protected function sendAuthenticationRequest(array $body)
     {
-        $response = $this->request($this->authorizationUrl(), 'POST', [
+        $response = $this->request($this->getApiPath(), 'POST', [
             'form_params' => $body,
             'headers'     => [
                 'Content-Type' => 'application/x-www-form-urlencoded'
@@ -72,9 +72,9 @@ class Authentication extends Base
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    protected function authorizationUrl(): ?string
+    protected function getApiPath(): string
     {
         return data_get($this->config, 'api.urls.authorization');
     }

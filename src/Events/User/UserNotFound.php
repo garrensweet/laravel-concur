@@ -1,9 +1,6 @@
 <?php
 
-namespace VdPoel\Concur\Events\TravelProfile;
-
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Queue\SerializesModels;
+namespace VdPoel\Concur\Events\User;
 
 class UserNotFound
 {

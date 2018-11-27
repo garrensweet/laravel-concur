@@ -10,14 +10,17 @@
          processIsolation="false"
          stopOnFailure="false">
     <testsuites>
-        <testsuite name="Authentication">
-            <file>tests/AuthenticationTest.php</file>
-        </testsuite>
-        <testsuite name="Model Events">
-            <file>tests/ModelEventsTest.php</file>
-        </testsuite>
-        <testsuite name="Travel Profiles">
-            <file>tests/TravelProfileTest.php</file>
+        <!--<testsuite name="Authentication">-->
+            <!--<file>tests/AuthenticationTest.php</file>-->
+        <!--</testsuite>-->
+        <!--<testsuite name="Model Events">-->
+            <!--<file>tests/ModelEventsTest.php</file>-->
+        <!--</testsuite>-->
+        <!--<testsuite name="Travel Profiles">-->
+            <!--<file>tests/TravelProfileTest.php</file>-->
+        <!--</testsuite>-->
+        <testsuite name="Users">
+            <file>tests/UserTest.php</file>
         </testsuite>
     </testsuites>
     <filter>

@@ -9,32 +9,30 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Events\Dispatcher;
 use VdPoel\Concur\Api\Factory;
 use VdPoel\Concur\Events\TravelProfile\CreateTravelProfile;
+use VdPoel\Concur\Events\TravelProfile\LoginIdInUse;
 use VdPoel\Concur\Events\TravelProfile\LookupTravelProfile;
 use VdPoel\Concur\Events\TravelProfile\TravelProfileCreated;
 use VdPoel\Concur\Events\TravelProfile\TravelProfileFound;
 use VdPoel\Concur\Events\TravelProfile\TravelProfileNotFound;
 
-class TravelProfileEventSubscriber
+class TravelProfileEventSubscriber extends BaseEventSubscriber
 {
     /**
-     * @var Factory
+     * @var array
      */
-    protected $concur;
-
-    /**
-     * TravelProfileEventSubscriber constructor.
-     *
-     * @param Factory $concur
-     */
-    public function __construct(Factory $concur)
-    {
-        $this->concur = $concur;
-    }
+    protected $events = [
+        CreateTravelProfile::class ,
+        LookupTravelProfile::class,
+        TravelProfileFound::class,
+        TravelProfileNotFound::class,
+        TravelProfileCreated::class,
+        LoginIdInUse::class
+    ];
 
     /**
      * @param Authenticatable|Model $model
      */
-    public function create($model)
+    public function createTravelProfile($model): void
     {
         try {
             $attributes = $model->only(array_values(config('concur.form_params.travel.profile')));
@@ -53,7 +51,7 @@ class TravelProfileEventSubscriber
      * @param Authenticatable|Model $model
      * @throws GuzzleException
      */
-    public function lookup($model)
+    public function lookupTravelProfile($model): void
     {
         $this->concur->travelProfile->get(['userid_value' => $model->getAttribute('email')]);
     }
@@ -62,37 +60,11 @@ class TravelProfileEventSubscriber
      * @param Authenticatable|Model $model
      * @throws GuzzleException
      */
-    public function profileNotFound($model)
+    public function travelProfileNotFound($model): void
     {
-        $attributes = $model->only(array_values(config('concur.form_params.travel.profile')));
-
-        $params = array_combine(array_keys(config('concur.form_params.travel.profile')), $attributes);
-
-        $key = app()->makeWith('concur.cache.key', compact('model'));
-
-        $encryptedPassword = app('cache')->get($key);
-
-        $response = $this->concur->travelProfile->create(array_merge($params, [
-            'Password' => decrypt($encryptedPassword)
-        ]));
-
-        $xml = simplexml_load_string($response->getBody()->getContents());
-
-        dump($xml);
-    }
-
-    /**
-     * @param mixed $model
-     * @throws GuzzleException
-     */
-    public function profileFound($model)
-    {
-        $attributes = $model->only(array_values(config('concur.form_params.travel.profile')));
-
-        $params = array_combine(array_keys(config('concur.form_params.travel.profile')), $attributes);
-
-        $key = app()->makeWith('concur.cache.key', compact('model'));
-
+        $attributes        = $model->only(array_values(config('concur.form_params.travel.profile')));
+        $params            = array_combine(array_keys(config('concur.form_params.travel.profile')), $attributes);
+        $key               = app()->makeWith('concur.cache.key', compact('model'));
         $encryptedPassword = app('cache')->get($key);
 
         $response = $this->concur->travelProfile->create(array_merge($params, [
@@ -107,22 +79,24 @@ class TravelProfileEventSubscriber
     /**
      * @param mixed $payload
      */
-    public function profileCreated($payload)
+    public function travelProfileFound($payload): void
     {
         dump($payload);
     }
 
     /**
-     * Register the listeners for the subscriber.
-     *
-     * @param  Dispatcher $events
+     * @param mixed $payload
      */
-    public function subscribe($events)
+    public function travelProfileCreated($payload): void
     {
-        $events->listen(CreateTravelProfile::class, sprintf('%s@create', static::class));
-        $events->listen(LookupTravelProfile::class, sprintf('%s@lookup', static::class));
-        $events->listen(TravelProfileFound::class, sprintf('%s@profileFound', static::class));
-        $events->listen(TravelProfileNotFound::class, sprintf('%s@profileNotFound', static::class));
-        $events->listen(TravelProfileCreated::class, sprintf('%s@profileCreated', static::class));
+        dump($payload);
+    }
+
+    /**
+     * @param mixed $payload
+     */
+    public function loginIdInUse($payload): void
+    {
+        dump($payload);
     }
 }

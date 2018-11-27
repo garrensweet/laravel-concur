@@ -49,6 +49,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "scripts": {
-    "test": "vendor/bin/phpunit"
+    "run-all-tests": "vendor/bin/phpunit",
+    "run-group-tests": "vendor/bin/phpunit --group"
   }
 }

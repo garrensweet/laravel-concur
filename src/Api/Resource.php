@@ -12,7 +12,7 @@ abstract class Resource extends Base implements ResourceRoutes
     protected $tokenType = 'Bearer';
 
     /**
-     * @return void
+     * @return mixed
      * @throws \BadMethodCallException
      */
     public function all()
@@ -22,7 +22,7 @@ abstract class Resource extends Base implements ResourceRoutes
 
     /**
      * @param array $params
-     * @return void
+     * @return mixed
      * @throws \BadMethodCallException
      */
     public function get(array $params = [])
@@ -32,7 +32,7 @@ abstract class Resource extends Base implements ResourceRoutes
 
     /**
      * @param array $params
-     * @return void
+     * @return mixed
      * @throws \BadMethodCallException
      */
     public function create(array $params = [])
@@ -42,7 +42,7 @@ abstract class Resource extends Base implements ResourceRoutes
 
     /**
      * @param array $params
-     * @return void
+     * @return mixed
      * @throws \BadMethodCallException
      */
     public function update(array $params = [])

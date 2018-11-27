@@ -48,7 +48,7 @@ abstract class TestCase extends OrchestraTestCase
     /**
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -60,7 +60,7 @@ abstract class TestCase extends OrchestraTestCase
             'event_id'   => Event::all()->first()->getKey(),
             'first_name' => 'Test',
             'last_name'  => 'User',
-            'email'      => sprintf('test.user+%s@example.com', md5(Str::uuid())),
+            'email'      => sprintf('test.%s@example.com', md5(Str::uuid())),
             'password'   => md5(Str::uuid())
         ]));
 
@@ -72,7 +72,7 @@ abstract class TestCase extends OrchestraTestCase
      * @param Application $app
      * @return array
      */
-    protected function getPackageProviders($app)
+    protected function getPackageProviders($app): array
     {
         return [ConcurServiceProvider::class];
     }
@@ -81,7 +81,7 @@ abstract class TestCase extends OrchestraTestCase
      * @param Application $app
      * @return void
      */
-    public function getEnvironmentSetUp($app)
+    public function getEnvironmentSetUp($app): void
     {
         $app['auth']->guard()->getProvider()->setModel(Account::class);
 
@@ -104,7 +104,7 @@ abstract class TestCase extends OrchestraTestCase
     /**
      * @return void
      */
-    public function markTestAsPassed()
+    public function markTestAsPassed(): void
     {
         $this->assertTrue(true);
     }
@@ -128,7 +128,7 @@ abstract class TestCase extends OrchestraTestCase
     /**
      * @return void
      */
-    protected function setUpDatabase()
+    protected function setUpDatabase(): void
     {
         Schema::create('events', function (Blueprint $table) {
             $table->bigIncrements('id');

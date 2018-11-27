@@ -12,6 +12,7 @@ use VdPoel\Concur\Api\TravelProfile;
 use VdPoel\Concur\Api\User;
 use VdPoel\Concur\Events\Subscribers\AuthenticationEventSubscriber;
 use VdPoel\Concur\Events\Subscribers\TravelProfileEventSubscriber;
+use VdPoel\Concur\Events\Subscribers\UserEventSubscriber;
 use VdPoel\Concur\Observers\AuthenticatableObserver;
 
 /**
@@ -71,6 +72,7 @@ class ConcurServiceProvider extends ServiceProvider
 
         Event::subscribe(AuthenticationEventSubscriber::class);
         Event::subscribe(TravelProfileEventSubscriber::class);
+        Event::subscribe(UserEventSubscriber::class);
     }
 
     /**
@@ -98,7 +100,8 @@ class ConcurServiceProvider extends ServiceProvider
             Factory::class,
             TravelProfile::class,
             TravelProfileEventSubscriber::class,
-            User::class
+            User::class,
+            UserEventSubscriber::class
         ];
     }
 

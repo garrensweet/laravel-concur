@@ -13,6 +13,9 @@
         <testsuite name="Authentication">
             <file>tests/AuthenticationTest.php</file>
         </testsuite>
+        <testsuite name="Model Events">
+            <file>tests/ModelEventsTest.php</file>
+        </testsuite>
         <testsuite name="Travel Profiles">
             <file>tests/TravelProfileTest.php</file>
         </testsuite>
@@ -24,6 +27,7 @@
     </filter>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_KEY" value="JrIF3iCWHesAgO00l51jXRVT7kmftTsB"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_DRIVER" value="array"/>
         <env name="MAIL_DRIVER" value="array"/>

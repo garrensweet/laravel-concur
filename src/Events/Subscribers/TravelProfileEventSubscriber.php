@@ -4,11 +4,15 @@ namespace VdPoel\Concur\Events\Subscribers;
 
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Events\Dispatcher;
 use VdPoel\Concur\Api\Factory;
 use VdPoel\Concur\Events\TravelProfile\CreateTravelProfile;
 use VdPoel\Concur\Events\TravelProfile\LookupTravelProfile;
-use VdPoel\Concur\Test\Models\Account;
+use VdPoel\Concur\Events\TravelProfile\TravelProfileCreated;
+use VdPoel\Concur\Events\TravelProfile\TravelProfileFound;
+use VdPoel\Concur\Events\TravelProfile\TravelProfileNotFound;
 
 class TravelProfileEventSubscriber
 {
@@ -28,12 +32,12 @@ class TravelProfileEventSubscriber
     }
 
     /**
-     * @param CreateTravelProfile $event
+     * @param Authenticatable|Model $model
      */
-    public function create (CreateTravelProfile $event)
+    public function create($model)
     {
         try {
-            $attributes = $event->model->only(array_values(config('concur.form_params.travel.profile')));
+            $attributes = $model->only(array_values(config('concur.form_params.travel.profile')));
 
             $params = array_combine(array_keys(config('concur.form_params.travel.profile')), $attributes);
 
@@ -46,29 +50,79 @@ class TravelProfileEventSubscriber
     }
 
     /**
-     * @param Account $account
+     * @param Authenticatable|Model $model
+     * @throws GuzzleException
      */
-    public function lookup (Account $account)
+    public function lookup($model)
     {
-        try {
-            $this->concur->travelProfile->get(['userid_value' => $account->getAttribute('email')]);
-        } catch (ClientException $exception) {
-            dump($account->getAttribute('email'));
-            dump($exception->getMessage());
-        } catch (GuzzleException $exception) {
-            dump($account->getAttribute('email'));
-            dump($exception->getMessage());
-        }
+        $this->concur->travelProfile->get(['userid_value' => $model->getAttribute('email')]);
+    }
+
+    /**
+     * @param Authenticatable|Model $model
+     * @throws GuzzleException
+     */
+    public function profileNotFound($model)
+    {
+        $attributes = $model->only(array_values(config('concur.form_params.travel.profile')));
+
+        $params = array_combine(array_keys(config('concur.form_params.travel.profile')), $attributes);
+
+        $key = app()->makeWith('concur.cache.key', compact('model'));
+
+        $encryptedPassword = app('cache')->get($key);
+
+        $response = $this->concur->travelProfile->create(array_merge($params, [
+            'Password' => decrypt($encryptedPassword)
+        ]));
+
+        $xml = simplexml_load_string($response->getBody()->getContents());
+
+        dump($xml);
+    }
+
+    /**
+     * @param mixed $model
+     * @throws GuzzleException
+     */
+    public function profileFound($model)
+    {
+        $attributes = $model->only(array_values(config('concur.form_params.travel.profile')));
+
+        $params = array_combine(array_keys(config('concur.form_params.travel.profile')), $attributes);
+
+        $key = app()->makeWith('concur.cache.key', compact('model'));
+
+        $encryptedPassword = app('cache')->get($key);
+
+        $response = $this->concur->travelProfile->create(array_merge($params, [
+            'Password' => decrypt($encryptedPassword)
+        ]));
+
+        $xml = simplexml_load_string($response->getBody()->getContents());
+
+        dump($xml);
+    }
+
+    /**
+     * @param mixed $payload
+     */
+    public function profileCreated($payload)
+    {
+        dump($payload);
     }
 
     /**
      * Register the listeners for the subscriber.
      *
-     * @param  Dispatcher  $events
+     * @param  Dispatcher $events
      */
     public function subscribe($events)
     {
-        $events->listen(CreateTravelProfile::class, 'VdPoel\Concur\Events\Subscribers\TravelProfileEventSubscriber@create');
-        $events->listen(LookupTravelProfile::class, 'VdPoel\Concur\Events\Subscribers\TravelProfileEventSubscriber@lookup');
+        $events->listen(CreateTravelProfile::class, sprintf('%s@create', static::class));
+        $events->listen(LookupTravelProfile::class, sprintf('%s@lookup', static::class));
+        $events->listen(TravelProfileFound::class, sprintf('%s@profileFound', static::class));
+        $events->listen(TravelProfileNotFound::class, sprintf('%s@profileNotFound', static::class));
+        $events->listen(TravelProfileCreated::class, sprintf('%s@profileCreated', static::class));
     }
 }

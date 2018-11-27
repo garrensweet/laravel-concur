@@ -2,20 +2,34 @@
 
 namespace VdPoel\Concur\Test;
 
-use Illuminate\Support\Facades\Event;
-use VdPoel\Concur\Events\TravelProfile\LookupTravelProfile;
-
 class TravelProfileTest extends TestCase
 {
-    /** @test */
-    public function it_listens_for_travel_profile_lookup_events()
+    public function setUp()
     {
-        $account = $this->createTestAccount();
+        parent::setUp();
 
-        Event::fake();
+        $this->concur->authentication->login();
+    }
 
-        Event::assertDispatched(LookupTravelProfile::class, function (LookupTravelProfile $event) use ($account) {
-            return $event->model->getKey() === $account->getKey();
-        });
+    /** @test */
+    public function it_finds_the_encrypted_password_in_the_cache()
+    {
+        $this->withoutEvents();
+
+        $model = $this->createTestAccount();
+
+        $key = app()->makeWith('concur.cache.key', compact('model'));
+
+        $encryptedPassword = $this->app['cache']->get($key);
+
+        $this->assertNotEmpty($encryptedPassword);
+
+        $this->assertTrue($this->app['hash']->check(decrypt($encryptedPassword), $model->getAttribute('password')));
+    }
+
+    /** @test */
+    public function it_creates_travel_profiles_for_new_accounts()
+    {
+        $model = $this->createTestAccount();
     }
 }

@@ -12,6 +12,7 @@ use VdPoel\Concur\Api\TravelProfile;
 use VdPoel\Concur\Api\User;
 use VdPoel\Concur\Events\Subscribers\AuthenticationEventSubscriber;
 use VdPoel\Concur\Events\Subscribers\TravelProfileEventSubscriber;
+use VdPoel\Concur\Observers\AuthenticatableObserver;
 
 /**
  * Class ConcurServiceProvider
@@ -48,14 +49,28 @@ class ConcurServiceProvider extends ServiceProvider
 
         $this->mergeConfigFrom($this->packageConfig, 'concur');
 
-        if (!class_exists('CreateConcurTravelProfilesTable')) {
-            $this->publishes([
-                __DIR__.'/../migrations/create_concur_travel_profiles_table.php.stub' => database_path("/migrations/{$timestamp}_create_activity_log_table.php"),
-            ], 'migrations');
-        }
+//        if (!class_exists('CreateConcurTravelProfilesTable')) {
+//            $this->publishes([
+//                __DIR__.'/../migrations/create_concur_travel_profiles_table.php.stub' => database_path("/migrations/{$timestamp}_create_activity_log_table.php"),
+//            ], 'migrations');
+//        }
 
-        Event::subscribe(TravelProfileEventSubscriber::class);
+//        dd($this->app['auth']->guard()->getProvider()->getModel());
+
+        app($this->app['concur.auth.model'])::observe(AuthenticatableObserver::class);
+
+//        call_user_func_array([$this->app['auth']->guard()->getProvider()->getModel(), 'observe'], [AuthenticatableObserver::class]);
+
+//        Event::listen('eloquent.*', function () {
+//            dump(func_get_args());
+//        });
+
+//        Event::listen(sprintf('eloquent.created: %s', $this->app['auth']->guard()->getProvider()->getModel()), function ($model) {
+//            dump($model);
+//        });
+
         Event::subscribe(AuthenticationEventSubscriber::class);
+        Event::subscribe(TravelProfileEventSubscriber::class);
     }
 
     /**
@@ -66,6 +81,7 @@ class ConcurServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->registerAliases();
+        $this->registerStaticBindings();
         $this->registerConcurApiFactory();
         $this->registerGuzzleClient();
         $this->registerApiRequestHandlers();
@@ -95,6 +111,19 @@ class ConcurServiceProvider extends ServiceProvider
         $this->app->alias('concur.api.authentication', Authentication::class);
         $this->app->alias('concur.api.travel.profile', TravelProfile::class);
         $this->app->alias('concur.api.user', User::class);
+    }
+
+    protected function registerStaticBindings(): void
+    {
+        $this->app->bind('concur.auth.model', function (Application $app) {
+            return $app['auth']->guard()->getProvider()->getModel();
+        });
+
+        $this->app->bind('concur.cache.key', function (Application $application, array $parameters) {
+            $model = data_get($parameters, 'model');
+
+            return md5(implode('.', $model->only(['first_name', 'last_name', 'email', 'event_id'])));
+        });
     }
 
     /**

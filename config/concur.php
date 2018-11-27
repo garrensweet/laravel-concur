@@ -19,9 +19,6 @@ return [
         'id'               => env('CONCUR_COMPANY_ID'),
         'travel_config_id' => env('CONCUR_TRAVEL_CONFIG_ID'),
     ],
-    'events' => [
-        ''
-    ],
     'form_params' => [
         'user'   => [
             'LoginID'   => 'email',

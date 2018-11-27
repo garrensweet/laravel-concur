@@ -5,6 +5,7 @@ namespace VdPoel\Concur\Api;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\ResponseInterface;
+use VdPoel\Concur\Events\TravelProfile\TravelProfileFound;
 
 /**
  * Class TravelProfile
@@ -25,12 +26,18 @@ class TravelProfile extends Resource
     public function get(array $params = [])
     {
         try {
-            return $this->request($this->url(array_merge($params, [
+            $response = $this->request($this->url(array_merge($params, [
                 'userid_type' => data_get($params, 'userid_type', 'login')
             ])));
+
+            $parsed = $this->parseResponse($response);
+
+            event(TravelProfileFound::class, $parsed);
         } catch (ClientException $exception) {
-            return null;
+            $this->errorHandler->handle($exception);
         }
+
+        return null;
     }
 
     /**

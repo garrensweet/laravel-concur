@@ -7,6 +7,11 @@ use VdPoel\Concur\Contracts\ResourceRoutes;
 abstract class Resource extends Base implements ResourceRoutes
 {
     /**
+     * @var string
+     */
+    protected $tokenType = 'Bearer';
+
+    /**
      * @return void
      * @throws \BadMethodCallException
      */
@@ -50,6 +55,6 @@ abstract class Resource extends Base implements ResourceRoutes
      */
     protected function tokenType(): string
     {
-        return 'Bearer';
+        return $this->tokenType;
     }
 }

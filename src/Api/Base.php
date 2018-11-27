@@ -4,11 +4,13 @@ namespace VdPoel\Concur\Api;
 
 use Carbon\Carbon;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Cache\CacheManager;
-use Illuminate\Cache\RedisStore;
 use Illuminate\Contracts\Cache\Store;
 use Psr\Http\Message\ResponseInterface;
+use VdPoel\Concur\ErrorHandler;
+use VdPoel\Concur\Events\TravelProfile\TravelProfileNotFound;
 
 /**
  * Class Base
@@ -27,6 +29,11 @@ abstract class Base
     protected const BATCH_MAX_ITEMS = 500;
 
     /**
+     * @var int
+     */
+    protected const CACHE_LIFETIME = 5;
+
+    /**
      * @var Client
      */
     protected $client;
@@ -42,6 +49,11 @@ abstract class Base
     protected $cache;
 
     /**
+     * @var ErrorHandler
+     */
+    protected $errorHandler;
+
+    /**
      * Concur constructor.
      * @param Client $client
      * @param CacheManager $cache
@@ -51,10 +63,57 @@ abstract class Base
         $this->client = $client;
         $this->cache  = $cache->getStore();
         $this->config = config('concur');
+        $this->errorHandler = new ErrorHandler();
 
         if (method_exists($this->cache, 'setPrefix')) {
             $this->cache->setPrefix(implode('.', ['Concur', $this->getCachePrefix()]));
         }
+    }
+
+    /**
+     * @param ResponseInterface $response
+     * @return mixed
+     */
+    public function parseResponse(ResponseInterface $response)
+    {
+        switch ($this->getContentType($response->getHeaders())) {
+            case 'application/xml;charset=UTF-8':
+                return simplexml_load_string($response->getBody()->getContents());
+                break;
+            case 'application/json;charset=UTF-8':
+                $contents = json_decode($response->getBody(), true);
+
+                if (is_array($contents) && json_last_error() === JSON_ERROR_NONE) {
+                    return $contents;
+                }
+
+                break;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array $items
+     */
+    public function setCacheData(array $items = []): void
+    {
+        foreach ($items as $key => $value) {
+            if ($key === 'expires_in') {
+                $this->setTokenExpiration($value);
+            }
+
+            $this->cache->put($key, $value, static::CACHE_LIFETIME);
+        }
+    }
+
+    /**
+     * @param string $key
+     * @return mixed|null
+     */
+    public function getCachedData(string $key)
+    {
+        return $this->exists($key) ? $this->cache->get($key) : null;
     }
 
     /**
@@ -82,11 +141,13 @@ abstract class Base
      */
     protected function headers(): array
     {
-        return tap(['headers' => ['Content-Type' => 'application/xml']], function (array $headers) {
-            if ($token = $this->cache->get('access_token')) {
-                data_set($headers, 'headers.Authorization', $this->getAuthorizationHeader($token));
-            }
-        });
+        $headers = ['headers' => ['Content-Type' => 'application/xml']];
+
+        if ($token = $this->cache->get('access_token')) {
+            data_set($headers, 'headers.Authorization', $this->getAuthorizationHeader($token));
+        }
+
+        return $headers;
     }
 
     /**
@@ -110,43 +171,6 @@ abstract class Base
     protected function getContentType(array $headers = []): ?string
     {
         return last(data_get($headers, 'Content-Type'));
-    }
-
-    /**
-     * @param ResponseInterface $response
-     * @return mixed
-     */
-    protected function parseResponse(ResponseInterface $response)
-    {
-        switch ($this->getContentType($response->getHeaders())) {
-            case 'application/xml;charset=UTF-8':
-                return simplexml_load_string($response->getBody()->getContents());
-                break;
-            case 'application/json;charset=UTF-8':
-                $contents = json_decode($response->getBody(), true);
-
-                if (is_array($contents) && json_last_error() === JSON_ERROR_NONE) {
-                    return $contents;
-                }
-
-                break;
-        }
-
-        return null;
-    }
-
-    /**
-     * @param array $items
-     */
-    protected function setCacheData(array $items = []): void
-    {
-        foreach ($items as $key => $value) {
-            if ($key === 'expires_in') {
-                $this->setTokenExpiration($value);
-            }
-
-            $this->cache->put($key, $value, 5);
-        }
     }
 
     /**

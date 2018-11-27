@@ -52,7 +52,7 @@ class ConcurServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom(__DIR__ . '/../routes/concur.php');
 
-        if (!class_exists('CreateTravelProfilesTable')) {
+        if (!class_exists(CreateTravelProfilesTable)) {
             $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
         }
 

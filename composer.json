@@ -29,7 +29,10 @@
   "autoload": {
     "psr-4": {
       "VdPoel\\Concur\\": "src/"
-    }
+    },
+    "classmap": [
+      "database"
+    ]
   },
   "autoload-dev": {
     "psr-4": {

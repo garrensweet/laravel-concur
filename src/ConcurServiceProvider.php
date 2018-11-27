@@ -5,6 +5,7 @@ namespace VdPoel\Concur;
 use GuzzleHttp\Client;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use VdPoel\Concur\Api\Authentication;
 use VdPoel\Concur\Api\Factory;
@@ -52,11 +53,15 @@ class ConcurServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom(__DIR__ . '/../routes/concur.php');
 
-        if (!class_exists(\CreateTravelProfilesTable::class)) {
-            $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->createMigrationFiles();
+
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([]);
         }
 
-        app($this->app['concur.auth.model'])::observe(AuthenticatableObserver::class);
+        $this->app->make($this->app['concur.auth.model'])::observe(AuthenticatableObserver::class);
 
         Event::subscribe(AuthenticationEventSubscriber::class);
         Event::subscribe(TravelProfileEventSubscriber::class);
@@ -85,12 +90,34 @@ class ConcurServiceProvider extends ServiceProvider
         return [
             Authentication::class,
             AuthenticationEventSubscriber::class,
+            Concur::class,
             Factory::class,
             TravelProfile::class,
             TravelProfileEventSubscriber::class,
             User::class,
             UserEventSubscriber::class
         ];
+    }
+
+    /**
+     * @return void
+     */
+    protected function createMigrationFiles(): void
+    {
+        config(['filesystems.disks' => array_merge(config('filesystems.disks'), [
+            'concur' => [
+                'driver' => 'local',
+                'root'   => __DIR__ . '/../database/migrations',
+            ]
+        ])]);
+
+        $exists = in_array('create_travel_profiles_table.php', array_map(function (string $filename) {
+            return implode('_', array_slice(explode('_', $filename), 4));
+        }, Storage::disk('concur')->files()));
+
+        if (!$exists) {
+            Storage::disk('concur')->copy('stubs/create_travel_profiles_table.php', sprintf('%s_create_travel_profiles_table.php', now()->format('Y_m_d_Hms')));
+        }
     }
 
     /**

@@ -8,6 +8,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Contracts\Cache\Store;
 use Psr\Http\Message\ResponseInterface;
+use VdPoel\Concur\Concur;
 use VdPoel\Concur\ErrorHandler;
 
 /**

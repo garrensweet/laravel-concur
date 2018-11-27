@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Cache\Store;
 use VdPoel\Concur\Api\Factory;
+use VdPoel\Concur\Concur;
 use VdPoel\Concur\Events\TravelProfile\LookupTravelProfile;
 
 class AuthenticatableObserver
@@ -42,7 +43,9 @@ class AuthenticatableObserver
      */
     public function creating($model)
     {
-        $this->cache->put($this->getCacheKey($model), encrypt(request()->input('password')), static::CACHE_LIFETIME);
+        if (Concur::check($model)) {
+            $this->cache->put($this->getCacheKey($model), encrypt(request()->input('password')), static::CACHE_LIFETIME);
+        }
     }
 
     /**
@@ -53,7 +56,9 @@ class AuthenticatableObserver
      */
     public function created($model)
     {
-        event(LookupTravelProfile::class, $model);
+        if (Concur::check($model)) {
+            event(LookupTravelProfile::class, $model);
+        }
     }
 
     /**

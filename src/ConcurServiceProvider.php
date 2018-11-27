@@ -50,25 +50,13 @@ class ConcurServiceProvider extends ServiceProvider
 
         $this->mergeConfigFrom($this->packageConfig, 'concur');
 
-//        if (!class_exists('CreateConcurTravelProfilesTable')) {
-//            $this->publishes([
-//                __DIR__.'/../migrations/create_concur_travel_profiles_table.php.stub' => database_path("/migrations/{$timestamp}_create_activity_log_table.php"),
-//            ], 'migrations');
-//        }
+        $this->loadRoutesFrom(__DIR__ . '/../routes/concur.php');
 
-//        dd($this->app['auth']->guard()->getProvider()->getModel());
+        if (!class_exists('CreateTravelProfilesTable')) {
+            $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        }
 
         app($this->app['concur.auth.model'])::observe(AuthenticatableObserver::class);
-
-//        call_user_func_array([$this->app['auth']->guard()->getProvider()->getModel(), 'observe'], [AuthenticatableObserver::class]);
-
-//        Event::listen('eloquent.*', function () {
-//            dump(func_get_args());
-//        });
-
-//        Event::listen(sprintf('eloquent.created: %s', $this->app['auth']->guard()->getProvider()->getModel()), function ($model) {
-//            dump($model);
-//        });
 
         Event::subscribe(AuthenticationEventSubscriber::class);
         Event::subscribe(TravelProfileEventSubscriber::class);
@@ -116,16 +104,29 @@ class ConcurServiceProvider extends ServiceProvider
         $this->app->alias('concur.api.user', User::class);
     }
 
+    /**
+     * @return void
+     */
     protected function registerStaticBindings(): void
     {
+        /**
+         * Register a function to get the guard's user model.
+         */
         $this->app->bind('concur.auth.model', function (Application $app) {
             return $app['auth']->guard()->getProvider()->getModel();
         });
 
+        /**
+         * Register a function a create a cache key prefix unique to each user.
+         */
         $this->app->bind('concur.cache.key', function (Application $application, array $parameters) {
-            $model = data_get($parameters, 'model');
+            $attributes = ['first_name', 'last_name', 'email'];
 
-            return md5(implode('.', $model->only(['first_name', 'last_name', 'email', 'event_id'])));
+            if ($application['config']->get('concur.migrations.tenancy.enabled', false)) {
+                array_push($attributes, $application['config']->get('concur.migrations.tenancy.foreign_key'));
+            }
+
+            return md5(implode('.', data_get($parameters, 'model')->only($attributes)));
         });
     }
 

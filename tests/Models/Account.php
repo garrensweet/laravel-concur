@@ -4,11 +4,13 @@ namespace VdPoel\Concur\Test\Models;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use VdPoel\Concur\Contracts\MakesTravelRequests;
+use VdPoel\Concur\Models\Traits\HasTravelProfiles;
 
 class Account extends Model implements Authenticatable, MakesTravelRequests
 {
+    use HasTravelProfiles;
+
     protected $fillable = [
         'event_id',
         'first_name',
@@ -16,20 +18,6 @@ class Account extends Model implements Authenticatable, MakesTravelRequests
         'email',
         'password'
     ];
-
-//    public static function boot()
-//    {
-//        parent::boot();
-//
-//        static::creating(function (Account $account) {
-//            event(LookupTravelProfile::class, $account);
-//        });
-//    }
-
-    public function travelProfiles(): HasMany
-    {
-        return $this->hasMany(TravelProfile::class);
-    }
 
     public function getAuthIdentifierName()
     {

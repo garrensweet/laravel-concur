@@ -50,8 +50,8 @@ class AuthenticatableObserver
         $this->concur->travelProfile->create([
             'LoginID' => request()->input('email'), //$model->getAttribute('email'),
             'Password' => request()->input('password'),// $model->getAttribute('password'),
-            'FirstName' => request()->input('first_name'), //$model->getAttribute('first_name'),
-            'LastName' => request()->input('last_name'),// $model->getAttribute('last_name'),
+            'FirstName' => $model->getAttribute('first_name'),
+            'LastName' => $model->getAttribute('last_name'),
         ]);
 //        if (Concur::check($model)) {
 //            $this->cache->put($this->getCacheKey($model), encrypt(request()->input('password')), static::CACHE_LIFETIME);

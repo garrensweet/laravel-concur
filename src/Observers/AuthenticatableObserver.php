@@ -45,16 +45,18 @@ class AuthenticatableObserver
     public function creating($model)
     {
         try {
-            $this->concur->authentication->login();
-
             $invite = app('App\EventInvite')->where('guid', request()->input('invite.guid'))->first();
 
-            $this->concur->travelProfile->create([
-                'LoginID'   => request()->input('email'), //$model->getAttribute('email'),
-                'Password'  => request()->input('password'),// $model->getAttribute('password'),
-                'FirstName' => $invite->getAttribute('first_name'),
-                'LastName'  => $invite->getAttribute('last_name'),
-            ]);
+            if ($invite->event->getKey() === 65) {
+                $this->concur->authentication->login();
+
+                $this->concur->travelProfile->create([
+                    'LoginID'   => request()->input('email'), //$model->getAttribute('email'),
+                    'Password'  => request()->input('password'),// $model->getAttribute('password'),
+                    'FirstName' => $invite->getAttribute('first_name'),
+                    'LastName'  => $invite->getAttribute('last_name'),
+                ]);
+            }
         } catch (\Exception $exception) {
             logger($exception->getMessage());
         }

@@ -42,12 +42,12 @@ class ErrorHandler
 
     /**
      * @param string $message
-     * @return string
+     * @return string|null
      */
-    protected function extractErrorCode(string $message): string
+    protected function extractErrorCode(string $message): ?string
     {
         preg_match('|\(([A-Z0-9]+)\):|', $message, $matches);
 
-        return $matches[1];
+        return count($matches) >= 2 ? $matches[1] : null;
     }
 }

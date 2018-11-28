@@ -4,6 +4,7 @@ namespace VdPoel\Concur\Test\Models;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use VdPoel\Concur\Contracts\MakesTravelRequests;
 use VdPoel\Concur\Models\Traits\HasTravelProfiles;
 
@@ -18,6 +19,14 @@ class Account extends Model implements Authenticatable, MakesTravelRequests
         'email',
         'password'
     ];
+
+    /**
+     * @return BelongsTo
+     */
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class);
+    }
 
     public function getAuthIdentifierName()
     {

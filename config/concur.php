@@ -20,6 +20,14 @@ return [
         ]
     ],
     /**
+     * Application based access.
+     */
+    'auth' => [
+        'setting' => [
+            'key' => 'concur_enabled'
+        ]
+    ],
+    /**
      * Concur Partner identifiers.
      */
     'company'     => [

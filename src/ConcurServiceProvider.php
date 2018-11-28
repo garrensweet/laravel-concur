@@ -53,15 +53,9 @@ class ConcurServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom(__DIR__ . '/../routes/concur.php');
 
-//        $this->createMigrationFiles();
+        call_user_func_array([$this->app['concur.auth.model'], 'observe'], [AuthenticatableObserver::class]);
 
-//        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
-
-//        if ($this->app->runningInConsole()) {
-//            $this->commands([]);
-//        }
-
-        $this->app->make($this->app['concur.auth.model'])::observe(AuthenticatableObserver::class);
+//        $this->app->make($this->app['concur.auth.model'])::observe(AuthenticatableObserver::class);
 
         Event::subscribe(AuthenticationEventSubscriber::class);
         Event::subscribe(TravelProfileEventSubscriber::class);

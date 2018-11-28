@@ -10,15 +10,15 @@
          processIsolation="false"
          stopOnFailure="false">
     <testsuites>
-        <!--<testsuite name="Authentication">-->
-            <!--<file>tests/AuthenticationTest.php</file>-->
-        <!--</testsuite>-->
-        <!--<testsuite name="Model Events">-->
-            <!--<file>tests/ModelEventsTest.php</file>-->
-        <!--</testsuite>-->
-        <!--<testsuite name="Travel Profiles">-->
-            <!--<file>tests/TravelProfileTest.php</file>-->
-        <!--</testsuite>-->
+        <testsuite name="Authentication">
+            <file>tests/AuthenticationTest.php</file>
+        </testsuite>
+        <testsuite name="Model Events">
+            <file>tests/ModelEventsTest.php</file>
+        </testsuite>
+        <testsuite name="Travel Profiles">
+            <file>tests/TravelProfileTest.php</file>
+        </testsuite>
         <testsuite name="Users">
             <file>tests/UserTest.php</file>
         </testsuite>
@@ -32,9 +32,11 @@
         <env name="APP_ENV" value="testing"/>
         <env name="APP_KEY" value="JrIF3iCWHesAgO00l51jXRVT7kmftTsB"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
-        <env name="CACHE_DRIVER" value="array"/>
+        <env name="CACHE_DRIVER" value="redis"/>
         <env name="MAIL_DRIVER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
+        <env name="REDIS_SERVER" value="0.0.0.0"/>
+        <env name="REDIS_PORT" value="32768"/>
     </php>
 </phpunit>

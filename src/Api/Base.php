@@ -65,7 +65,8 @@ abstract class Base
         $this->errorHandler = new ErrorHandler();
 
         if (method_exists($this->cache, 'setPrefix')) {
-            $this->cache->setPrefix(implode('.', ['Concur', $this->getCachePrefix()]));
+            $this->cache->setPrefix('concur');
+//            $this->cache->setPrefix(implode('.', ['Concur', $this->getCachePrefix()]));
         }
     }
 

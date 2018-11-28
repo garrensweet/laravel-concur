@@ -36,7 +36,7 @@ class ConcurServiceProvider extends ServiceProvider
     {
         parent::__construct($app);
 
-        $this->defer         = true;
+        $this->defer         = false;
         $this->packageConfig = __DIR__ . '/../config/concur.php';
     }
 
@@ -53,13 +53,11 @@ class ConcurServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom(__DIR__ . '/../routes/concur.php');
 
-        call_user_func_array([$this->app['concur.auth.model'], 'observe'], [AuthenticatableObserver::class]);
-
-//        $this->app->make($this->app['concur.auth.model'])::observe(AuthenticatableObserver::class);
+        $this->app->make($this->app['concur.auth.model'])::observe(AuthenticatableObserver::class);
 
         Event::subscribe(AuthenticationEventSubscriber::class);
-        Event::subscribe(TravelProfileEventSubscriber::class);
-        Event::subscribe(UserEventSubscriber::class);
+//        Event::subscribe(TravelProfileEventSubscriber::class);
+//        Event::subscribe(UserEventSubscriber::class);
     }
 
     /**
@@ -134,7 +132,7 @@ class ConcurServiceProvider extends ServiceProvider
          * Register a function to get the guard's user model.
          */
         $this->app->bind('concur.auth.model', function (Application $app) {
-            return $app['auth']->guard()->getProvider()->getModel();
+            return $app['auth']->guard('api-v3')->getProvider()->getModel();
         });
 
         /**

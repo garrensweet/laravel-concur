@@ -53,13 +53,13 @@ class ConcurServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom(__DIR__ . '/../routes/concur.php');
 
-        $this->createMigrationFiles();
+//        $this->createMigrationFiles();
 
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+//        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
-        if ($this->app->runningInConsole()) {
-            $this->commands([]);
-        }
+//        if ($this->app->runningInConsole()) {
+//            $this->commands([]);
+//        }
 
         $this->app->make($this->app['concur.auth.model'])::observe(AuthenticatableObserver::class);
 

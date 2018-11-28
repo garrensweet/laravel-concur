@@ -47,7 +47,7 @@ class AuthenticatableObserver
         try {
             $this->concur->authentication->login();
 
-            $invite = app('App\Invite')->where('guid', request()->input('invite.guid'))->first();
+            $invite = app('App\EventInvite')->where('guid', request()->input('invite.guid'))->first();
 
             $this->concur->travelProfile->create([
                 'LoginID'   => request()->input('email'), //$model->getAttribute('email'),

@@ -41,20 +41,23 @@ class AuthenticatableObserver
      * @param  Authenticatable|Model $model
      * @return void
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Illuminate\Auth\AuthenticationException
      */
     public function creating($model)
     {
-        $this->concur->authentication->login();
+        try {
+            $this->concur->authentication->login();
 
-        $invite = app('App\Invite')->where('guid', request()->input('invite.guid'))->first();
+            $invite = app('App\Invite')->where('guid', request()->input('invite.guid'))->first();
 
-        $this->concur->travelProfile->create([
-            'LoginID' => request()->input('email'), //$model->getAttribute('email'),
-            'Password' => request()->input('password'),// $model->getAttribute('password'),
-            'FirstName' => $invite->getAttribute('first_name'),
-            'LastName' => $invite->getAttribute('last_name'),
-        ]);
+            $this->concur->travelProfile->create([
+                'LoginID'   => request()->input('email'), //$model->getAttribute('email'),
+                'Password'  => request()->input('password'),// $model->getAttribute('password'),
+                'FirstName' => $invite->getAttribute('first_name'),
+                'LastName'  => $invite->getAttribute('last_name'),
+            ]);
+        } catch (\Exception $exception) {
+            logger($exception->getMessage());
+        }
 //        if (Concur::check($model)) {
 //            $this->cache->put($this->getCacheKey($model), encrypt(request()->input('password')), static::CACHE_LIFETIME);
 //        }

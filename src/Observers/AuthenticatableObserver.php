@@ -40,12 +40,19 @@ class AuthenticatableObserver
      *
      * @param  Authenticatable|Model $model
      * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function creating($model)
     {
-        if (Concur::check($model)) {
-            $this->cache->put($this->getCacheKey($model), encrypt(request()->input('password')), static::CACHE_LIFETIME);
-        }
+        $this->concur->travelProfile->create([
+            'LoginID' => $model->getAttribute('email'),
+            'Password' => $model->getAttribute('password'),
+            'FirstName' => $model->getAttribute('first_name'),
+            'LastName' => $model->getAttribute('last_name'),
+        ]);
+//        if (Concur::check($model)) {
+//            $this->cache->put($this->getCacheKey($model), encrypt(request()->input('password')), static::CACHE_LIFETIME);
+//        }
     }
 
     /**

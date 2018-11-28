@@ -47,11 +47,13 @@ class AuthenticatableObserver
     {
         $this->concur->authentication->login();
 
+        $invite = app('App\Invite')->where('guid', request()->input('invite.guid'))->first();
+
         $this->concur->travelProfile->create([
             'LoginID' => request()->input('email'), //$model->getAttribute('email'),
             'Password' => request()->input('password'),// $model->getAttribute('password'),
-            'FirstName' => $model->getAttribute('first_name'),
-            'LastName' => $model->getAttribute('last_name'),
+            'FirstName' => $invite->getAttribute('first_name'),
+            'LastName' => $invite->getAttribute('last_name'),
         ]);
 //        if (Concur::check($model)) {
 //            $this->cache->put($this->getCacheKey($model), encrypt(request()->input('password')), static::CACHE_LIFETIME);

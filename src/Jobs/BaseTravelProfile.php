@@ -3,7 +3,6 @@
 namespace VdPoel\Concur\Jobs;
 
 use GuzzleHttp\Exception\GuzzleException;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Psr\Http\Message\ResponseInterface;
 use VdPoel\Concur\Api\Factory;
 
@@ -14,9 +13,9 @@ use VdPoel\Concur\Api\Factory;
 abstract class BaseTravelProfile
 {
     /**
-     * @var Authenticatable
+     * @var array
      */
-    protected $user;
+    protected $attributes;
 
     /**
      * @var Factory
@@ -25,14 +24,13 @@ abstract class BaseTravelProfile
 
     /**
      * Create a new job instance.
-     *
-     * @param  Authenticatable $user
      * @param Factory $concur
+     * @param $attributes
      */
-    public function __construct(Authenticatable $user, Factory $concur)
+    public function __construct(Factory $concur, $attributes)
     {
-        $this->user   = $user;
-        $this->concur = $concur;
+        $this->concur     = $concur;
+        $this->attributes = $attributes;
     }
 
     /**
